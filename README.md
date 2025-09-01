@@ -10,8 +10,9 @@ API RESTful para gestión de productos, órdenes y usuarios desarrollada con Nes
 - [Buenas Prácticas Implementadas](#buenas-prácticas-implementadas)
 - [Instalación y Configuración](#instalación-y-configuración)
 - [Despliegue con Docker](#despliegue-con-docker)
+- [Variables de Entorno Requeridas](#variables-de-entorno-requeridas)
+- [Rutas de la API](#rutas-de-la-api)
 - [Testing](#testing)
-- [Documentación API](#documentación-api)
 - [Comandos Disponibles](#comandos-disponibles)
 
 ## 🚀 Descripción
@@ -53,261 +54,296 @@ API completa para gestión de comercio electrónico que incluye:
 
 ```
 src/
-├── common/               # Código compartido
-│   ├── decorators/       # Decoradores reutilizables
-│   ├── dto/             # DTOs comunes
-│   ├── interceptors/    # Interceptores globales
-│   ├── interfaces/      # Interfaces compartidas
-│   └── utils/           # Utilidades comunes
-├── users/               # Módulo de usuarios
-│   ├── controllers/     # Controladores HTTP
-│   ├── services/        # Lógica de negocio
-│   ├── repository/      # Capa de datos
-│   ├── dto/            # Data Transfer Objects
-│   ├── schemas/        # Esquemas de MongoDB
-│   ├── decorators/     # Decoradores Swagger
-│   └── enums/          # Enumeraciones y mensajes
-├── products/           # Módulo de productos
-├── orders/            # Módulo de órdenes
-├── auth/              # Módulo de autenticación
-└── config/            # Configuraciones globales
+├── auth/                    # Módulo de autenticación
+│   ├── controllers/         # Controladores de auth
+│   ├── decorators/          # Decoradores Swagger
+│   ├── dto/                # DTOs y validaciones
+│   ├── guards/             # Guards JWT
+│   ├── interfaces/         # Interfaces TypeScript
+│   └── strategies/         # Estrategias Passport
+├── users/                  # Módulo de usuarios
+│   ├── controllers/        # Controladores CRUD
+│   ├── decorators/         # Decoradores Swagger
+│   ├── dto/               # DTOs y validaciones
+│   ├── enums/             # Mensajes centralizados
+│   ├── interfaces/        # Interfaces TypeScript
+│   ├── repository/        # Capa de acceso a datos
+│   ├── schemas/           # Esquemas MongoDB
+│   └── services/          # Lógica de negocio
+├── products/              # Módulo de productos
+│   └── [estructura similar a users]
+├── orders/                # Módulo de órdenes
+│   └── [estructura similar a users]
+├── common/                # Utilidades comunes
+│   ├── decorators/        # Decoradores reutilizables
+│   ├── dto/              # DTOs base
+│   ├── interceptors/     # Interceptores HTTP
+│   ├── interfaces/       # Interfaces comunes
+│   └── utils/            # Utilidades y helpers
+└── config/               # Configuraciones
+    └── swagger/          # Configuración Swagger
 ```
 
-### Composición de Módulos
-
-Cada módulo sigue la arquitectura limpia con:
-
-- **Controllers**: Solo decoradores Swagger, sin lógica de negocio
-- **Services**: Lógica de negocio, retorna datos limpios
-- **Repository**: Acceso a datos con método único `findByWhereCondition`
-- **DTOs**: Validación y transformación de datos
-- **Schemas**: Modelos de base de datos
-- **Decorators**: Documentación Swagger reutilizable
-- **Enums**: Mensajes centralizados en español
-
-## ✨ Buenas Prácticas Implementadas
+## 🏗️ Buenas Prácticas Implementadas
 
 ### Arquitectura
 - **Clean Architecture**: Separación clara de responsabilidades
-- **Repository Pattern**: Abstracción de la capa de datos
-- **Service Layer**: Lógica de negocio centralizada
-- **DRY Principle**: Eliminación de código repetitivo
+- **Repository Pattern**: Abstracción de acceso a datos
+- **Service Layer Pattern**: Lógica de negocio centralizada
+- **Decorator Pattern**: Documentación Swagger reutilizable
 
 ### Código Limpio
-- **Single Responsibility**: Una responsabilidad por clase
-- **Decoradores Reutilizables**: Sistema unificado de respuestas API
+- **DRY**: No repetición de código
+- **Single Responsibility**: Cada clase tiene una responsabilidad
+- **Utilities Comunes**: Funciones reutilizables centralizadas
 - **Mensajes Centralizados**: Enums para todos los mensajes
-- **Utilities Compartidas**: Funciones comunes reutilizables
 
-### Respuestas Estandarizadas
-- **HTTP Response Interceptor**: Formato único de respuestas
+### Estandarización
+- **HTTP Response Interceptor**: Respuestas consistentes
+- **Validaciones Globales**: DTOs con class-validator
 - **Error Handling**: Manejo consistente de errores
-- **Pagination**: Sistema unificado de paginación
-- **Spanish Messages**: Todos los mensajes en español
-
-### Seguridad
-- **JWT Authentication**: Tokens seguros
-- **Password Hashing**: Encriptación bcrypt
-- **Input Validation**: Validación exhaustiva de datos
-- **Security Headers**: Helmet para headers de seguridad
-
-## ⚙️ Instalación y Configuración
-
-### Prerrequisitos
-- Node.js (v18 o superior)
-- Docker & Docker Compose
-- MongoDB Compass (opcional, para GUI)
-
-### 1. Clonar el repositorio
-```bash
-git clone <repository-url>
-cd products-orders-api
-```
-
-### 2. Instalar dependencias
-```bash
-npm install
-```
-
-### 3. Configurar variables de entorno
-```bash
-cp .env.example .env
-```
-
-Editar `.env` con tus configuraciones:
-```env
-DATABASE_URI=mongodb://nodeuser:nodepassword@mongodb:27017/products-order-mongo?authSource=products-order-mongo
-JWT_SECRET=your-super-secret-jwt-key
-PORT=3000
-```
-
-### 4. Desarrollo local (sin Docker)
-```bash
-# Iniciar MongoDB localmente
-# Luego ejecutar:
-npm run start:dev
-```
+- **TypeScript Strict**: Tipado estricto
 
 ## 🐳 Despliegue con Docker
 
-### Opción 1: Despliegue completo (Recomendado)
+### Requisitos Previos
+- Docker y Docker Compose instalados
+- Archivo `.env` configurado (copiar desde `.env.example`)
+
+### Deploy Completo (Recomendado)
+
 ```bash
-# 1. Construir imágenes
-npm run docker:build
+# 1. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus valores
 
-# 2. Levantar todos los servicios
-npm run docker:up
+# 2. Deploy completo con limpieza
+npm run docker:rebuild
 
-# 3. Verificar que los servicios estén corriendo
-docker-compose ps
-```
-
-### Opción 2: Desarrollo con Docker
-```bash
-# Desarrollo con hot-reload
-npm run docker:up:dev
-```
-
-### Opción 3: Producción
-```bash
-# Solo servicios de producción
-npm run docker:up:prod
+# O paso a paso:
+npm run docker:clean    # Limpiar contenedores y volúmenes
+npm run docker:build    # Construir imágenes desde cero
+npm run docker:up       # Iniciar todos los servicios
 ```
 
 ### Servicios Disponibles
 
-| Servicio | Puerto | Descripción |
-|----------|--------|-------------|
-| API | 3000 | API Principal |
-| MongoDB | 27017 | Base de datos |
-| Mongo Express | 8081 | GUI MongoDB |
-| Swagger | 3000/api | Documentación |
+Una vez ejecutado el comando anterior, los siguientes servicios estarán disponibles:
 
-### Conexión a MongoDB
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| **API Producción** | `http://localhost:3000` | API principal en modo producción |
+| **API Desarrollo** | `http://localhost:3001` | API en modo desarrollo (hot reload) |
+| **Swagger Documentation** | `http://localhost:3000/apidoc` | Documentación interactiva de la API |
+| **MongoDB** | `localhost:27017` | Base de datos MongoDB |
+| **Mongo Express** | `http://localhost:8081` | Interfaz web para MongoDB |
 
-**MongoDB Compass:**
+### Gestión de Servicios
+
+```bash
+# Ver estado de servicios
+docker-compose ps
+
+# Ver logs
+npm run docker:logs        # Todos los servicios
+npm run docker:logs:api    # Solo API producción
+npm run docker:logs:db     # Solo MongoDB
+
+# Reiniciar servicios
+npm run docker:restart     # Todos los servicios
+npm run docker:restart:api # Solo API
+
+# Parar servicios
+npm run docker:down
+
+# Limpiar completamente
+npm run docker:clean
 ```
-mongodb://nodeuser:nodepassword@localhost:27017/products-order-mongo?authSource=products-order-mongo
+
+## 🔧 Variables de Entorno Requeridas
+
+El archivo `docker-compose.yml` requiere las siguientes variables definidas en `.env`:
+
+### Variables de Aplicación (REQUERIDAS)
+```bash
+# Base de datos
+DATABASE_URI=mongodb://nodeuser:nodepassword@mongodb:27017/products-order-mongo?authSource=products-order-mongo
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=1h
+
+# Aplicación
+PORT=3000
+NODE_ENV=production
+
+# CORS
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001
+
+# Upload de archivos
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./uploads
 ```
 
-**Mongo Express:**
-- URL: http://localhost:8081
-- Usuario: admin / password
+### Variables de Docker (REQUERIDAS)
+```bash
+# Puertos de contenedores
+API_PORT=3000              # Puerto para API producción
+API_DEV_PORT=3001          # Puerto para API desarrollo
+
+# MongoDB
+MONGO_PORT=27017           # Puerto MongoDB
+MONGO_DB=products-order-mongo
+MONGO_USER=nodeuser
+MONGO_PASSWORD=nodepassword
+
+# MongoDB Admin (para inicialización)
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=password
+
+# Mongo Express
+MONGO_EXPRESS_PORT=8081
+MONGO_EXPRESS_USERNAME=admin
+MONGO_EXPRESS_PASSWORD=password
+```
+
+⚠️ **IMPORTANTE**: Todas estas variables son requeridas para que `docker-compose.yml` funcione correctamente.
+
+## 🌐 Rutas de la API
+
+### Base URL
+Todas las rutas de la API tienen el prefijo `/api`:
+- **Base**: `http://localhost:3000/api`
+- **Documentación**: `http://localhost:3000/apidoc`
+
+### Endpoints Principales
+
+#### Autenticación
+```bash
+POST /api/auth/login      # Iniciar sesión
+POST /api/auth/register   # Registrar usuario
+```
+
+#### Usuarios
+```bash
+GET    /api/users         # Listar usuarios (autenticado)
+POST   /api/users         # Crear usuario
+GET    /api/users/:id     # Obtener usuario por ID
+PATCH  /api/users/:id     # Actualizar usuario
+DELETE /api/users/:id     # Eliminar usuario
+POST   /api/users/search  # Buscar usuarios
+```
+
+#### Productos
+```bash
+GET    /api/products      # Listar productos
+POST   /api/products      # Crear producto
+GET    /api/products/:id  # Obtener producto por ID
+PATCH  /api/products/:id  # Actualizar producto
+DELETE /api/products/:id  # Eliminar producto (soft delete)
+POST   /api/products/search # Buscar productos
+```
+
+#### Órdenes
+```bash
+GET    /api/orders        # Listar órdenes
+POST   /api/orders        # Crear orden
+GET    /api/orders/:id    # Obtener orden por ID
+PATCH  /api/orders/:id    # Actualizar orden
+DELETE /api/orders/:id    # Eliminar orden
+POST   /api/orders/search # Buscar órdenes
+```
+
+### Datos Demo
+La aplicación se inicializa automáticamente con datos demo:
+- **SuperAdmin**: `admin@demo.com` / `demodemo`
+- **Usuarios de prueba**: 10 usuarios adicionales
+- **Productos**: 12 productos realistas
+- **Órdenes**: 15 órdenes con relaciones
 
 ## 🧪 Testing
 
 ```bash
-# Tests unitarios
+# Ejecutar tests unitarios
 npm run test
 
-# Tests con coverage
+# Tests en modo watch
+npm run test:watch
+
+# Coverage de tests
 npm run test:cov
 
 # Tests e2e
 npm run test:e2e
-
-# Tests en modo watch
-npm run test:watch
 ```
 
-## 📖 Documentación API
+## 📝 Comandos Disponibles
 
-### Swagger UI
-Accede a la documentación interactiva en:
-```
-http://localhost:3000/api
-```
-
-### Endpoints Principales
-
-**Authentication:**
-- `POST /auth/login` - Iniciar sesión
-- `POST /auth/register` - Registrar usuario
-
-**Users:**
-- `GET /users` - Listar usuarios
-- `POST /users` - Crear usuario
-- `PUT /users/:id` - Actualizar usuario
-
-**Products:**
-- `GET /products` - Listar productos
-- `POST /products` - Crear producto (con imagen)
-- `PUT /products/:id` - Actualizar producto
-
-**Orders:**
-- `GET /orders` - Listar órdenes
-- `POST /orders` - Crear orden
-- `PUT /orders/:id` - Actualizar orden
-
-## 📋 Comandos Disponibles
-
-### Desarrollo
-| Comando | Descripción |
-|---------|-------------|
-| `npm run start:dev` | Inicia servidor desarrollo con hot-reload |
-| `npm run start:debug` | Inicia servidor con debug habilitado |
-| `npm run build` | Construye aplicación para producción |
-| `npm run start:prod` | Inicia aplicación en modo producción |
-
-### Testing
-| Comando | Descripción |
-|---------|-------------|
-| `npm run test` | Ejecuta tests unitarios |
-| `npm run test:watch` | Tests en modo watch |
-| `npm run test:cov` | Tests con reporte de cobertura |
-| `npm run test:e2e` | Tests end-to-end |
-
-### Calidad de Código
-| Comando | Descripción |
-|---------|-------------|
-| `npm run lint` | Ejecuta ESLint y corrige errores |
-| `npm run format` | Formatea código con Prettier |
-
-### Docker - Gestión de Servicios
-| Comando | Descripción |
-|---------|-------------|
-| `npm run docker:build` | Construye imágenes Docker sin cache |
-| `npm run docker:up` | Levanta todos los servicios |
-| `npm run docker:up:dev` | Levanta servicios en modo desarrollo |
-| `npm run docker:up:prod` | Levanta solo servicios de producción |
-| `npm run docker:down` | Para todos los servicios |
-
-### Docker - Monitoreo
-| Comando | Descripción |
-|---------|-------------|
-| `npm run docker:logs` | Ver logs de todos los servicios |
-| `npm run docker:logs:api` | Ver logs solo de la API |
-| `npm run docker:logs:db` | Ver logs solo de MongoDB |
-| `npm run docker:restart` | Reinicia todos los servicios |
-
-### Docker - Mantenimiento
-| Comando | Descripción |
-|---------|-------------|
-| `npm run docker:clean` | Limpia volúmenes y contenedores |
-| `npm run docker:rebuild` | Limpia, reconstruye y levanta |
-| `npm run docker:shell:api` | Accede al shell del contenedor API |
-| `npm run docker:shell:db` | Accede al shell de MongoDB |
-
-### Ejemplos de Uso
-
-**Desarrollo completo con Docker:**
+### Desarrollo Local
 ```bash
-npm run docker:rebuild  # Primera vez
-npm run docker:logs     # Monitorear
+npm run start            # Iniciar en modo producción
+npm run start:dev        # Iniciar en modo desarrollo
+npm run start:debug      # Iniciar en modo debug
+npm run build            # Construir aplicación
+npm run lint             # Ejecutar linting
+npm run format           # Formatear código
 ```
 
-**Desarrollo local:**
+### Docker (Recomendado)
 ```bash
-npm install
-npm run start:dev
+# Deploy completo
+npm run docker:rebuild   # Limpia, construye e inicia todo
+
+# Gestión individual
+npm run docker:clean     # Limpiar completamente
+npm run docker:build     # Construir imágenes
+npm run docker:up        # Iniciar servicios
+npm run docker:down      # Parar servicios
+
+# Logs y monitoreo
+npm run docker:logs      # Ver todos los logs
+npm run docker:logs:api  # Ver logs de API
+npm run docker:logs:db   # Ver logs de MongoDB
+
+# Servicios específicos
+npm run docker:up:prod   # Solo producción
+npm run docker:up:dev    # Solo desarrollo
+npm run docker:restart   # Reiniciar servicios
+
+# Acceso a contenedores
+npm run docker:shell:api # Acceder a contenedor API
+npm run docker:shell:db  # Acceder a MongoDB shell
 ```
 
-**Testing completo:**
-```bash
-npm run test:cov
-npm run test:e2e
-```
+## 🔐 Autenticación
+
+La API utiliza JWT (JSON Web Tokens) para autenticación:
+
+1. **Login**: `POST /api/auth/login` retorna un token
+2. **Uso**: Incluir `Authorization: Bearer <token>` en headers
+3. **Registro**: `POST /api/auth/register` crea usuario y retorna token
+
+## 📚 Documentación API
+
+La documentación completa de la API está disponible en:
+- **Swagger UI**: `http://localhost:3000/apidoc`
+
+Incluye:
+- Esquemas de datos
+- Ejemplos de request/response  
+- Códigos de estado HTTP
+- Autenticación JWT integrada
 
 ---
 
-🔧 **Desarrollado con Clean Architecture y mejores prácticas de NestJS**
+## 🤝 Contribuciones
+
+1. Fork el proyecto
+2. Crear branch para feature (`git checkout -b feature/AmazingFeature`)
+3. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push al branch (`git push origin feature/AmazingFeature`)
+5. Abrir Pull Request
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.

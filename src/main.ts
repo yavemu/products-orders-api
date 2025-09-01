@@ -9,6 +9,9 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Configurar prefijo global para todas las rutas de la API
+  app.setGlobalPrefix('api');
+
   app.use(helmet());
   app.use(compression());
 
@@ -20,8 +23,9 @@ async function bootstrap() {
     }),
   );
 
+  // Configurar Swagger en /apidoc
   const document = SwaggerModule.createDocument(app, SwaggerDocumentBuilder.build());
-  SwaggerModule.setup('api', app, document, {
+  SwaggerModule.setup('apidoc', app, document, {
     swaggerOptions: { persistAuthorization: true },
   });
 
