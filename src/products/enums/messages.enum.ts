@@ -25,6 +25,8 @@ export enum ProductMessages {
   PRICE_REQUIRED = 'El precio es requerido',
   PICTURE_REQUIRED = 'La imagen del producto es requerida',
   INVALID_PRICE = 'El precio debe ser un número positivo',
-  INVALID_SKU = 'El SKU debe ser único',
+  INVALID_SKU = 'El SKU debe tener un formato válido (solo letras mayúsculas, números y guiones)',
   PICTURE_UPLOAD_ERROR = 'Error al subir la imagen del producto',
+  INVALID_PRODUCTS = 'La orden debe contener al menos un producto',
+  INVALID_TOTAL_PRODUCT_PRICES = 'Todas las cantidades deben ser mayores a 0',
 }

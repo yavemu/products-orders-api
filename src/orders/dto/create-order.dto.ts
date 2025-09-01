@@ -49,6 +49,18 @@ export class OrderProductDto {
 
 export class CreateOrderDto {
   @ApiProperty({
+    description: 'ID del cliente que realiza la orden',
+    example: '507f1f77bcf86cd799439011',
+    type: String,
+    format: 'ObjectId',
+    required: true,
+  })
+  @IsString({ message: 'El ID del cliente debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El ID del cliente es requerido' })
+  @IsMongoId({ message: 'El ID del cliente debe ser un ObjectId de MongoDB válido' })
+  clientId: string;
+
+  @ApiProperty({
     description: 'Nombre completo del cliente que realiza la orden',
     example: 'Juan Pérez García',
     type: String,

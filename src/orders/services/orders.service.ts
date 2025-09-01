@@ -1,41 +1,40 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateOrderDto, UpdateOrderDto, SearchOrderDto } from '../dto';
-import { OrderResponseDto } from '../dto/order-response.dto';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnprocessableEntityException,
+  ForbiddenException,
+} from '@nestjs/common';
+import {
+  CreateOrderDto,
+  UpdateOrderDto,
+  SearchOrderDto,
+  OrderReportsDto,
+  OrderReportsResponseDto,
+  OrderReportItemDto,
+  OrderResponseDto,
+} from '../dto';
 import { OrdersRepository } from '../repository/orders.repository';
-import { ProductsService } from '../../products/services/products.service';
 import { Order } from '../schemas/order.schema';
-import { Types } from 'mongoose';
-import { ServiceUtil } from '../../common/utils';
+import { HttpResponseUtil, ValidationUtil } from '../../common/utils';
+import { CsvUtil } from '../utils';
 import { PaginatedData } from '../../common/interfaces';
 import { OrderMessages } from '../enums';
 
 @Injectable()
 export class OrdersService {
-  constructor(
-    private readonly ordersRepository: OrdersRepository,
-    private readonly productsService: ProductsService,
-  ) {}
+  constructor(private readonly ordersRepository: OrdersRepository) {}
 
   async create(createOrderDto: CreateOrderDto): Promise<OrderResponseDto> {
-    const orderProducts = await this.calculateOrderProducts(createOrderDto.products);
-    const total = orderProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
-
-    const orderIdentifier = this.generateOrderIdentifier();
-
-    const orderData = {
-      identifier: orderIdentifier,
-      clientName: createOrderDto.clientName,
-      total,
-      products: orderProducts,
-      status: 'pending',
-    };
-
-    const createdOrder = await this.ordersRepository.create(orderData);
+    const createdOrder = await this.ordersRepository.create(createOrderDto);
     return this.mapToDto(createdOrder);
   }
 
   async findOne(id: string): Promise<OrderResponseDto> {
     const order = (await this.ordersRepository.findByWhereCondition({ _id: id })) as Order;
+    if (!order) {
+      throw new NotFoundException(OrderMessages.NOT_FOUND);
+    }
     return this.mapToDto(order);
   }
 
@@ -45,45 +44,26 @@ export class OrdersService {
       { multiple: true },
     )) as Order[];
     const orderDtos = orders.map(order => this.mapToDto(order));
-    return ServiceUtil.createListResponse(orderDtos);
+    return HttpResponseUtil.createListResponse(orderDtos);
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto): Promise<OrderResponseDto> {
-    const updateData: Record<string, unknown> = {};
-
-    if (updateOrderDto.clientName) {
-      updateData.clientName = updateOrderDto.clientName;
-    }
-
-    if (updateOrderDto.status) {
-      updateData.status = updateOrderDto.status;
-    }
-
-    if (updateOrderDto.products) {
-      const orderProducts = await this.calculateOrderProducts(updateOrderDto.products);
-      const total = orderProducts.reduce(
-        (sum, product) => sum + product.price * product.quantity,
-        0,
-      );
-
-      updateData.products = orderProducts;
-      updateData.total = total;
-    }
-
-    const updatedOrder = await this.ordersRepository.updateById(id, updateData);
+    const updatedOrder = await this.ordersRepository.updateById(id, updateOrderDto);
     return this.mapToDto(updatedOrder);
   }
 
-  async remove(id: string): Promise<OrderResponseDto> {
-    const deletedOrder = await this.ordersRepository.deleteById(id);
-    return this.mapToDto(deletedOrder);
+  async remove(id: string): Promise<{ message: string }> {
+    await this.ordersRepository.deleteById(id);
+    return {
+      message: OrderMessages.DELETED_SUCCESS,
+    };
   }
 
   async search(searchDto: SearchOrderDto): Promise<PaginatedData<OrderResponseDto>> {
     const page = searchDto.page || 1;
     const limit = searchDto.limit || 10;
 
-    const filter = ServiceUtil.buildSearchFilter({
+    const filter = HttpResponseUtil.buildSearchFilter({
       clientName: searchDto.clientName,
       identifier: searchDto.identifier,
       status: searchDto.status,
@@ -92,48 +72,88 @@ export class OrdersService {
     });
 
     const result = await this.ordersRepository.findByWhereCondition(filter, { page, limit });
-    return ServiceUtil.processPaginatedResult(result, (order: Order) => this.mapToDto(order));
+    return HttpResponseUtil.processPaginatedResult(result, (order: Order) => this.mapToDto(order));
   }
 
-  private async calculateOrderProducts(
-    products: { productId: string; quantity: number }[],
-  ): Promise<{ productId: Types.ObjectId; quantity: number; price: number; name: string }[]> {
-    const productIds = products.map(p => p.productId);
-    const productDetails = await this.productsService.findManyByIds(productIds);
+  async generateReports(
+    reportsDto: OrderReportsDto,
+  ): Promise<OrderReportsResponseDto | { csvContent: string; headers: Record<string, string> }> {
+    // Validar fechas usando la utilidad
+    const { startDate, endDate } = ValidationUtil.parseAndValidateDates(
+      reportsDto.startDate,
+      reportsDto.endDate,
+    );
 
-    if (productDetails.length !== productIds.length) {
-      throw new NotFoundException(OrderMessages.INVALID_PRODUCT_ID);
+    // Configurar filtros para el repositorio
+    const filters = {
+      startDate,
+      endDate,
+      clientId: reportsDto.clientId,
+      productId: reportsDto.productId,
+      sortBy: reportsDto.sortBy || 'total_desc',
+      page: reportsDto.returnCsv ? undefined : reportsDto.page,
+      limit: reportsDto.returnCsv ? undefined : reportsDto.limit,
+    };
+
+    try {
+      // Obtener datos y resumen
+      const [{ data, total }, summary] = await Promise.all([
+        this.ordersRepository.findOrdersForReports(filters),
+        this.ordersRepository.getOrdersSummary({
+          startDate,
+          endDate,
+          clientId: reportsDto.clientId,
+          productId: reportsDto.productId,
+        }),
+      ]);
+
+      // Mapear datos a DTO de reporte
+      const reportItems: OrderReportItemDto[] = data.map(order => this.mapToReportDto(order));
+
+      if (reportsDto.returnCsv) {
+        // Retornar CSV
+        const csvContent = CsvUtil.addUtf8Bom(CsvUtil.convertOrderReportsToCsv(reportItems));
+        const headers = CsvUtil.getCsvHeaders('order-reports');
+
+        return { csvContent, headers };
+      } else {
+        // Retornar JSON con paginación
+        const page = reportsDto.page || 1;
+        const limit = reportsDto.limit || 10;
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+          data: reportItems,
+          total,
+          page,
+          limit,
+          totalPages,
+          filters: {
+            startDate: reportsDto.startDate,
+            endDate: reportsDto.endDate,
+            clientId: reportsDto.clientId,
+            productId: reportsDto.productId,
+            sortBy: filters.sortBy,
+          },
+          summary,
+        };
+      }
+    } catch (error) {
+      if (error instanceof UnprocessableEntityException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al generar el reporte: ' + error.message);
     }
-
-    const productDetailsMap = new Map(productDetails.map(p => [p.id.toString(), p]));
-
-    return products.map(p => {
-      const detail = productDetailsMap.get(p.productId);
-      return {
-        productId: new Types.ObjectId(p.productId),
-        quantity: p.quantity,
-        price: detail.price,
-        name: detail.name,
-      };
-    });
-  }
-
-  private generateOrderIdentifier(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    return `ORD-${year}${month}${day}-${random}`;
   }
 
   private mapToDto(order: Order): OrderResponseDto {
     return {
       id: order._id.toString(),
       identifier: order.identifier,
+      clientId: order.clientId.toString(),
       clientName: order.clientName,
       total: order.total,
+      totalQuantity: order.totalQuantity,
       status: order.status,
       products: order.products.map(product => ({
         ...product,
@@ -141,6 +161,25 @@ export class OrdersService {
       })),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+    };
+  }
+
+  private mapToReportDto(order: Order): OrderReportItemDto {
+    return {
+      orderId: order._id.toString(),
+      identifier: order.identifier,
+      clientId: order.clientId.toString(),
+      clientName: order.clientName,
+      total: order.total,
+      totalQuantity: order.totalQuantity,
+      status: order.status,
+      createdAt: order.createdAt,
+      products: order.products.map(product => ({
+        productId: product.productId.toString(),
+        name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+      })),
     };
   }
 }

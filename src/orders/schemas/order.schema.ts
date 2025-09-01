@@ -23,11 +23,17 @@ export class Order extends Document {
   @Prop({ required: true, unique: true })
   identifier: string;
 
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  clientId: Types.ObjectId;
+
   @Prop({ required: true })
   clientName: string;
 
   @Prop({ required: true })
   total: number;
+
+  @Prop({ required: true })
+  totalQuantity: number;
 
   @Prop({ type: [OrderProduct], required: true })
   products: OrderProduct[];

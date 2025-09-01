@@ -8,10 +8,15 @@ import {
   Delete,
   UseGuards,
   UploadedFile,
-  BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from '../services/products.service';
-import { CreateProductDto, UpdateProductDto, SearchProductDto } from '../dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  SearchProductDto,
+  ProductResponseDto,
+} from '../dto';
+import { PaginatedData } from '../../common/interfaces';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ApiFile } from '../../common/decorators/api-file.decorator';
@@ -34,37 +39,28 @@ export class ProductsController {
   @Post()
   @CreateProductDecorator()
   @ApiFile('picture')
-  async create(
+  create(
     @UploadedFile() file: Express.Multer.File,
     @Body() createProductDto: CreateProductDto,
-  ) {
-    if (!file) {
-      throw new BadRequestException('Product picture is required');
-    }
-
-    const productData = {
-      ...createProductDto,
-      picture: file.path,
-    };
-
-    return this.productsService.create(productData);
+  ): Promise<ProductResponseDto> {
+    return this.productsService.createWithFile(createProductDto, file);
   }
 
   @Get()
   @FindAllProductDecorator()
-  findAll() {
+  findAll(): Promise<PaginatedData<ProductResponseDto>> {
     return this.productsService.findAll();
   }
 
   @Post('search')
   @SearchProductDecorator()
-  async search(@Body() searchDto: SearchProductDto) {
+  search(@Body() searchDto: SearchProductDto): Promise<PaginatedData<ProductResponseDto>> {
     return this.productsService.search(searchDto);
   }
 
   @Get(':id')
   @FindByIdProductDecorator()
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<ProductResponseDto> {
     return this.productsService.findOne(id);
   }
 
@@ -75,18 +71,13 @@ export class ProductsController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() updateProductDto: UpdateProductDto,
-  ) {
-    const updateData = {
-      ...updateProductDto,
-      ...(file && { picture: file.path }),
-    };
-
-    return this.productsService.update(id, updateData);
+  ): Promise<ProductResponseDto> {
+    return this.productsService.updateWithFile(id, updateProductDto, file);
   }
 
   @Delete(':id')
   @DeleteProductDecorator()
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.productsService.remove(id);
   }
 }

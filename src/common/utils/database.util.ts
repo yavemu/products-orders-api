@@ -1,11 +1,15 @@
 import { BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
-import { isValidObjectId } from 'mongoose';
+import { isValidObjectId, Types } from 'mongoose';
 
-export class RepositoryUtil {
+export class DatabaseUtil {
   static validateObjectId(id: string, entityName: string = 'documento'): void {
     if (!isValidObjectId(id)) {
       throw new BadRequestException(`ID de ${entityName} inválido`);
     }
+  }
+
+  static toObjectId(id: string): Types.ObjectId {
+    return new Types.ObjectId(id);
   }
 
   static async checkExists(
@@ -91,5 +95,34 @@ export class RepositoryUtil {
     const query = model.findOne(filter);
     if (select) query.select(select);
     return query.exec();
+  }
+
+  static buildSearchFilter(searchParams: Record<string, any>): Record<string, any> {
+    const filter: Record<string, any> = {};
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (typeof value === 'string' && !key.includes('Id')) {
+          // Text search with regex
+          filter[key] = { $regex: value, $options: 'i' };
+        } else if (key.includes('min') || key.includes('max')) {
+          // Range queries
+          const fieldName = key.replace(/^(min|max)/, '').toLowerCase();
+          if (!filter[fieldName]) {
+            filter[fieldName] = {};
+          }
+          if (key.startsWith('min')) {
+            filter[fieldName].$gte = value;
+          } else if (key.startsWith('max')) {
+            filter[fieldName].$lte = value;
+          }
+        } else {
+          // Exact match
+          filter[key] = value;
+        }
+      }
+    });
+
+    return filter;
   }
 }

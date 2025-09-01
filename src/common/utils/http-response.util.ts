@@ -1,6 +1,6 @@
 import { PaginatedData, PaginationMeta } from '../interfaces/http-response.interface';
 
-export class ServiceUtil {
+export class HttpResponseUtil {
   static createSuccessResponse<T>(data: T, message?: string) {
     return {
       success: true,
@@ -15,11 +15,13 @@ export class ServiceUtil {
     page: number,
     limit: number,
   ): PaginatedData<T> {
+    const totalPages = Math.ceil(total / limit);
+
     const meta: PaginationMeta = {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages,
     };
 
     return {
@@ -28,15 +30,7 @@ export class ServiceUtil {
     };
   }
 
-  static processPaginatedResult<T, R>(result: any, mapFunction: (item: T) => R): PaginatedData<R> {
-    if (result && typeof result === 'object' && 'data' in result) {
-      const mappedData = result.data.map(mapFunction);
-      return this.createPaginatedResponse(mappedData, result.total, result.page, result.limit);
-    }
-    return this.createListResponse([]);
-  }
-
-  static createListResponse<T>(data: T[]): PaginatedData<T> {
+  static createSimpleListResponse<T>(data: T[]): PaginatedData<T> {
     const meta: PaginationMeta = {
       page: 1,
       limit: data.length,
@@ -48,6 +42,18 @@ export class ServiceUtil {
       data,
       meta,
     };
+  }
+
+  static createListResponse<T>(data: T[]): PaginatedData<T> {
+    return this.createSimpleListResponse(data);
+  }
+
+  static processPaginatedResult<T, R>(result: any, mapFunction: (item: T) => R): PaginatedData<R> {
+    if (result && typeof result === 'object' && 'data' in result) {
+      const mappedData = result.data.map(mapFunction);
+      return this.createPaginatedResponse(mappedData, result.total, result.page, result.limit);
+    }
+    return this.createSimpleListResponse([]);
   }
 
   static buildSearchFilter(searchParams: Record<string, any>): Record<string, any> {

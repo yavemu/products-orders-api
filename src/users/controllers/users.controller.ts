@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
-import { CreateUserDto, SearchUserDto, UpdateUserDto } from '../dto';
+import { CreateUserDto, SearchUserDto, UpdateUserDto, UserResponseDto } from '../dto';
+import { PaginatedData } from '../../common/interfaces';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import {
@@ -21,37 +22,37 @@ export class UsersController {
 
   @Post()
   @CreateUserDecorator()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
   @FindAllUserDecorator()
-  findAll() {
+  findAll(): Promise<PaginatedData<UserResponseDto>> {
     return this.usersService.findAll();
   }
 
   @Post('search')
   @SearchUserDecorator()
-  async search(@Body() searchDto: SearchUserDto) {
+  search(@Body() searchDto: SearchUserDto): Promise<PaginatedData<UserResponseDto>> {
     return this.usersService.search(searchDto);
   }
 
   @Get(':id')
   @FindByIdUserDecorator()
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<UserResponseDto> {
     return this.usersService.findOneById(id);
   }
 
   @Patch(':id')
   @UpdateUserDecorator()
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   @DeleteUserDecorator()
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.usersService.remove(id);
   }
 }

@@ -70,6 +70,16 @@ export class OrderResponseDto {
 
   @Expose()
   @ApiProperty({
+    description: 'MongoDB ObjectId of the client who placed the order',
+    example: '507f1f77bcf86cd799439011',
+    type: String,
+    format: 'ObjectId',
+    readOnly: true,
+  })
+  clientId: string;
+
+  @Expose()
+  @ApiProperty({
     description: 'Full name of the client who placed the order',
     example: 'John Doe Smith',
     type: String,
@@ -89,6 +99,16 @@ export class OrderResponseDto {
     readOnly: true,
   })
   total: number;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Total quantity of all products in the order',
+    example: 5,
+    type: Number,
+    minimum: 1,
+    readOnly: true,
+  })
+  totalQuantity: number;
 
   @Expose()
   @ApiProperty({

@@ -48,7 +48,7 @@ db.users.insertMany([
     lastName: 'Pérez',
     email: 'juan.perez@demo.com',
     password: '$2b$12$vs7N5ii2tLYCt.4Rm/51a.IehP3DpeVtiicZ2YasPDEtX6qU6GWLG',
-    role: 'admin',
+    role: 'client',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -57,13 +57,13 @@ db.users.insertMany([
     lastName: 'García',
     email: 'maria.garcia@demo.com',
     password: '$2b$12$vs7N5ii2tLYCt.4Rm/51a.IehP3DpeVtiicZ2YasPDEtX6qU6GWLG',
-    role: 'admin',
+    role: 'client',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
 ]);
 
-print('✅ 2 additional test users created');
+print('✅ 2 additional test client users created');
 
 // Insertar productos reales de demostración
 const products = [
@@ -130,6 +130,10 @@ const insertedProducts = db.products.insertMany(products);
 const productIds = Object.values(insertedProducts.insertedIds);
 print('✅ Demo products created with real image URLs');
 
+// Get the client user IDs for order creation
+const clientUsers = db.users.find({ role: 'client' }).toArray();
+const clientIds = clientUsers.map(user => user._id);
+
 // Función para generar identificador único de orden
 function generateOrderId() {
   const now = new Date();
@@ -156,11 +160,14 @@ for (let i = 0; i < 5; i++) {
   const product = products[Math.floor(Math.random() * products.length)];
   const quantity = Math.floor(Math.random() * 3) + 1;
   const total = product.price * quantity;
+  const clientId = clientIds[i % clientIds.length];
 
   const order = {
     identifier: generateOrderId(),
+    clientId: clientId,
     clientName: clientNames[i % clientNames.length],
     total: Math.round(total * 100) / 100,
+    totalQuantity: quantity,
     products: [
       {
         productId: productIds[products.indexOf(product)],
@@ -178,4 +185,4 @@ for (let i = 0; i < 5; i++) {
 }
 
 db.orders.insertMany(orders);
-print('✅ Demo orders created with real products and images');
+print('✅ Demo orders created with real products, images, and client relationships');

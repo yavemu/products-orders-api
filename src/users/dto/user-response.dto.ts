@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserRole } from '../enums';
 
 export class UserResponseDto {
   @ApiProperty({
@@ -24,6 +25,13 @@ export class UserResponseDto {
     description: 'Email del usuario',
   })
   email: string;
+
+  @ApiProperty({
+    example: UserRole.CLIENT,
+    description: 'Rol del usuario',
+    enum: UserRole,
+  })
+  role: UserRole;
 
   @ApiPropertyOptional({
     example: 'Yam Vélez',
@@ -52,12 +60,6 @@ export class PaginatedUserResponseDto {
   data: UserResponseDto[];
 
   @ApiProperty({
-    example: 100,
-    description: 'Total de usuarios encontrados',
-  })
-  total: number;
-
-  @ApiProperty({
     example: 1,
     description: 'Página actual',
   })
@@ -68,6 +70,12 @@ export class PaginatedUserResponseDto {
     description: 'Cantidad de elementos por página',
   })
   limit: number;
+
+  @ApiProperty({
+    example: 100,
+    description: 'Total de usuarios encontrados',
+  })
+  total: number;
 
   @ApiProperty({
     example: 10,
@@ -113,7 +121,7 @@ export class UserListServiceResponseDto {
     type: PaginatedUserResponseDto,
     description: 'Datos paginados de usuarios',
   })
-  data?: PaginatedUserResponseDto;
+  data?: any;
 
   @ApiPropertyOptional({
     example: 'Lista de usuarios obtenida exitosamente',
