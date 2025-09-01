@@ -8,7 +8,6 @@ import {
 
 export function FindByIdProductDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Obtener producto por ID',
       description: 'Recupera un producto único por su ObjectId de MongoDB',

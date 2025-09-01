@@ -8,7 +8,6 @@ import {
 
 export function DeleteOrderDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Eliminar una orden',
       description: 'Elimina una orden de la base de datos. Esta acción no se puede deshacer.',

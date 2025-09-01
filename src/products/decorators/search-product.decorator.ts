@@ -8,7 +8,6 @@ import {
 
 export function SearchProductDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Buscar productos',
       description: 'Buscar productos por nombre, SKU, rango de precios con soporte de paginación.',

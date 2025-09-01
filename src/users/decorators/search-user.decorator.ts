@@ -8,7 +8,6 @@ import {
 
 export function SearchUserDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Buscar usuarios',
       description: 'Busca usuarios por nombre, apellido o email.',

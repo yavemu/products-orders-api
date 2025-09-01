@@ -97,8 +97,10 @@ export class OrdersService {
           },
           summary,
         };
-        
-        const csvContent = CsvUtil.addUtf8Bom(CsvUtil.convertOrderReportsToCsv(reportItems, csvMetadata));
+
+        const csvContent = CsvUtil.addUtf8Bom(
+          CsvUtil.convertOrderReportsToCsv(reportItems, csvMetadata),
+        );
         const headers = CsvUtil.getCsvHeaders('order-reports');
 
         return { csvContent, headers };

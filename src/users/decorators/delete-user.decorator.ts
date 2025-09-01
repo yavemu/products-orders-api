@@ -8,7 +8,6 @@ import {
 
 export function DeleteUserDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Eliminar usuario por ID',
       description: 'Elimina un usuario por su ID único.',

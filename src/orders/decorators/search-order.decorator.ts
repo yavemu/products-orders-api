@@ -8,7 +8,6 @@ import {
 
 export function SearchOrderDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Buscar órdenes',
       description:

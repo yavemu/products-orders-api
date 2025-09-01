@@ -8,7 +8,6 @@ import {
 
 export function FindAllProductDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Obtener todos los productos',
       description: 'Recupera una lista de todos los productos en la base de datos',

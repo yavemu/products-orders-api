@@ -8,7 +8,6 @@ import {
 
 export function FindByIdOrderDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Obtener orden por ID',
       description:

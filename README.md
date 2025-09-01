@@ -14,6 +14,7 @@ API RESTful para gestión de productos, órdenes y usuarios desarrollada con Nes
 - [Rutas de la API](#rutas-de-la-api)
 - [Testing](#testing)
 - [Comandos Disponibles](#comandos-disponibles)
+- [Challenge Assessment](#challenge-assessment)
 
 ## 🚀 Descripción
 
@@ -262,10 +263,19 @@ POST   /api/orders/reports # Generar reportes con estadísticas
 #### Reportes y Analytics
 ```bash
 POST   /api/orders/reports # Generar reportes avanzados
-# Parámetros: startDate, endDate, clientId, productId, sortBy
-# Respuesta: datos paginados + resumen estadístico
-# Soporte: exportación CSV con returnCsv=true
+# Parámetros: startDate, endDate, clientId, productId, sortBy, returnCsv
+# Respuesta JSON: datos paginados + resumen estadístico + filtros aplicados
+# Respuesta CSV: archivo de descarga directa con datos completos + estadísticas
 ```
+
+**Características de Reportes:**
+- **Filtros avanzados**: Por rango de fechas (obligatorio), cliente y/o producto específico
+- **Ordenamiento configurable**: Por total, fecha, cantidad, nombre de cliente
+- **Dos formatos de salida**:
+  - `returnCsv=false`: JSON paginado con metadatos completos
+  - `returnCsv=true`: Archivo CSV descargable con datos completos (sin paginación)
+- **Estructura CSV**: Una fila por producto, información de orden repetida, estadísticas al final
+- **Estadísticas incluidas**: Total órdenes, ingresos totales, cantidad vendida, valor promedio
 
 ### Datos Demo Mejorados
 La aplicación se inicializa automáticamente con datos demo realistas:
@@ -333,8 +343,18 @@ npm run docker:shell:db  # Acceder a MongoDB shell
 La API utiliza JWT (JSON Web Tokens) para autenticación:
 
 1. **Login**: `POST /api/auth/login` retorna un token
-2. **Uso**: Incluir `Authorization: Bearer <token>` en headers
-3. **Registro**: `POST /api/auth/register` crea usuario y retorna token
+2. **Registro**: `POST /api/auth/register` crea usuario y retorna token  
+3. **Uso**: Incluir `Authorization: Bearer <token>` en headers
+
+**Endpoints Públicos** (no requieren autenticación):
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/register` - Registrar usuario
+- `POST /api/users` - Crear usuario (endpoint público adicional)
+
+**Endpoints Protegidos** (requieren JWT token):
+- Todos los demás endpoints de usuarios, productos y órdenes
+
+**Swagger Integration**: La documentación en `/apidoc` incluye autenticación JWT integrada. Usa el botón "Authorize" para ingresar tu token y probar los endpoints protegidos.
 
 ## 📚 Documentación API
 
@@ -356,6 +376,12 @@ Incluye:
 3. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push al branch (`git push origin feature/AmazingFeature`)
 5. Abrir Pull Request
+
+## 📋 Challenge Assessment
+
+Para una evaluación detallada de los requisitos del challenge vs la implementación actual, consulta el archivo [challenge-assessment.md](challenge-assessment.md).
+
+**Estado actual: 100% Completo** - Todos los requisitos principales, bonus features, y características adicionales implementadas.
 
 ## 📄 Licencia
 

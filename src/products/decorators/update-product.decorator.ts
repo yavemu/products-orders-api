@@ -8,7 +8,6 @@ import {
 
 export function UpdateProductDecorator() {
   return applyDecorators(
-    
     ApiConsumes('multipart/form-data'),
     ApiOperation({
       summary: 'Actualizar un producto',

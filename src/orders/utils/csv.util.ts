@@ -21,7 +21,7 @@ export class CsvUtil {
         totalQuantitySold: number;
         averageOrderValue: number;
       };
-    }
+    },
   ): string {
     if (!data || data.length === 0) {
       return 'No hay datos para exportar';
@@ -43,7 +43,7 @@ export class CsvUtil {
       'Nombre Producto',
       'Cantidad Producto',
       'Precio Producto',
-      'Subtotal Producto'
+      'Subtotal Producto',
     ];
 
     sections.push(headers.join(','));
@@ -66,7 +66,7 @@ export class CsvUtil {
             this.escapeCsvValue(product.name),
             product.quantity.toString(),
             product.price.toFixed(2),
-            subtotal.toFixed(2)
+            subtotal.toFixed(2),
           ];
           sections.push(row.join(','));
         });
@@ -79,7 +79,9 @@ export class CsvUtil {
 
     // Resumen al final
     sections.push('RESUMEN DEL REPORTE');
-    sections.push(`Periodo del reporte:,${metadata.filters.startDate} al ${metadata.filters.endDate}`);
+    sections.push(
+      `Periodo del reporte:,${metadata.filters.startDate} al ${metadata.filters.endDate}`,
+    );
     if (metadata.filters.clientId) {
       sections.push(`Filtro Cliente ID:,${metadata.filters.clientId}`);
     }

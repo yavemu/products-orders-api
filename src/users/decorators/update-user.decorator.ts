@@ -8,7 +8,6 @@ import {
 
 export function UpdateUserDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Actualizar datos de usuario',
       description: 'Actualiza únicamente el nombre y apellido del usuario.',

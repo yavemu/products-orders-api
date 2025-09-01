@@ -8,7 +8,6 @@ import {
 
 export function DeleteProductDecorator() {
   return applyDecorators(
-    
     ApiOperation({
       summary: 'Eliminar un producto',
       description:

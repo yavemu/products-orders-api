@@ -83,8 +83,8 @@ npm run docker:shell:db
 
 ### 📊 Acceso a Swagger
 
-- **Producción**: http://localhost:3000/api
-- **Desarrollo**: http://localhost:3001/api
+- **Producción**: http://localhost:3000/apidoc
+- **Desarrollo**: http://localhost:3001/apidoc
 
 ### 💾 Conexión a MongoDB
 
@@ -116,10 +116,10 @@ El sistema crea automáticamente un usuario administrador:
 
 ```json
 {
-  "email": "admin@example.com",
-  "password": "AdminPass123!",
+  "email": "admin@demo.com",
+  "password": "demodemo",
   "firstName": "Admin",
-  "lastName": "User"
+  "lastName": "Demo"
 }
 ```
 
