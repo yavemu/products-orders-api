@@ -7,11 +7,13 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Order, OrderDocument } from '../schemas/order.schema';
-import { DatabaseUtil } from '../../common/utils';
+import { DatabaseUtil, RepositoryBaseUtil, HttpResponseUtil } from '../../common/utils';
 import { OrderMessages } from '../enums';
 import { OrderCalculationUtil } from '../utils';
 import { ProductsService } from '../../products/services/products.service';
 import { ProductMessages } from 'src/products/enums';
+import { Product } from 'src/products/schemas/product.schema';
+import { OrderProductDto, SearchOrderDto, DeleteOrderResponseDto, CreateOrderDto, UpdateOrderDto } from '../dto';
 
 @Injectable()
 export class OrdersRepository {
@@ -20,17 +22,8 @@ export class OrdersRepository {
     private readonly productsService: ProductsService,
   ) {}
 
-  async create(orderData: Partial<Order>): Promise<any> {
-    // Validar que hay productos en la orden
-    if (!orderData.products || orderData.products.length === 0) {
-      throw new BadRequestException(ProductMessages.INVALID_PRODUCTS);
-    }
-
-    // Validar que todas las cantidades son positivas
-    const invalidQuantities = orderData.products.filter(p => p.quantity <= 0);
-    if (invalidQuantities.length > 0) {
-      throw new BadRequestException(ProductMessages.INVALID_TOTAL_PRODUCT_PRICES);
-    }
+  async create(orderData: CreateOrderDto): Promise<any> {
+    this.validateOrderData(orderData, orderData.products);
 
     const orderProducts = await this.calculateOrderProducts(orderData.products);
     const { total, totalQuantity } = OrderCalculationUtil.calculateOrderTotals(orderProducts);
@@ -46,16 +39,37 @@ export class OrdersRepository {
       status: 'pending',
     };
 
-    if (
-      !createOrderData.clientId ||
-      !createOrderData.products ||
-      !createOrderData.products.length
-    ) {
-      throw new BadRequestException(OrderMessages.CREATE_ERROR);
-    }
-
     const order = new this.orderModel(createOrderData);
     return order.save();
+  }
+
+  async findAll(): Promise<Order[]> {
+    return RepositoryBaseUtil.findAll(this.findByWhereCondition.bind(this));
+  }
+
+  async findOneById(id: string): Promise<Order> {
+    DatabaseUtil.validateObjectId(id, OrderMessages.INVALID_ID);
+    const order = await this.findByWhereCondition({ _id: id });
+
+    if (!order) {
+      throw new NotFoundException(OrderMessages.NOT_FOUND);
+    }
+
+    return order;
+  }
+
+  async search(searchDto: SearchOrderDto): Promise<any> {
+    return RepositoryBaseUtil.search(
+      searchDto,
+      {
+        clientName: searchDto.clientName,
+        identifier: searchDto.identifier,
+        status: searchDto.status,
+        minTotal: searchDto.minTotal,
+        maxTotal: searchDto.maxTotal,
+      },
+      this.findByWhereCondition.bind(this),
+    );
   }
 
   async findByWhereCondition(
@@ -71,65 +85,51 @@ export class OrdersRepository {
     return DatabaseUtil.executeFindByWhereCondition(this.orderModel, whereCondition, options);
   }
 
-  async updateById(id: string, updateData: Partial<Order>): Promise<any> {
-    // Verificar que la orden existe y obtener su estado actual
+  async updateById(id: string, updateData: UpdateOrderDto): Promise<any> {
+    DatabaseUtil.validateObjectId(id, OrderMessages.INVALID_ID);
+
     const existingOrder = await this.findByWhereCondition({ _id: id });
     if (!existingOrder) {
       throw new NotFoundException(OrderMessages.NOT_FOUND);
     }
 
-    // Validar que no se puede modificar una orden completada o cancelada
-    if (existingOrder.status === 'completed' || existingOrder.status === 'cancelled') {
-      throw new ForbiddenException('No se puede modificar una orden completada o cancelada');
-    }
+    this.validateOrderUpdate(existingOrder, updateData);
+
+    const updateOrderData: Partial<Order> = {};
 
     if (updateData.clientId) {
-      updateData.clientId = new Types.ObjectId(updateData.clientId);
+      updateOrderData.clientId = new Types.ObjectId(updateData.clientId);
     }
 
     if (updateData.clientName) {
-      updateData.clientName = updateData.clientName;
+      updateOrderData.clientName = updateData.clientName;
     }
 
     if (updateData.status) {
-      // Validar transiciones de estado permitidas
-      if (!this.isValidStatusTransition(existingOrder.status, updateData.status)) {
-        throw new BadRequestException(
-          `No se puede cambiar el estado de ${existingOrder.status} a ${updateData.status}`,
-        );
-      }
-      updateData.status = updateData.status;
+      updateOrderData.status = updateData.status;
     }
 
     if (updateData.products) {
-      // Validar que hay productos y cantidades válidas
-      if (updateData.products.length === 0) {
-        throw new BadRequestException('La orden debe contener al menos un producto');
-      }
-
-      const invalidQuantities = updateData.products.filter(p => p.quantity <= 0);
-      if (invalidQuantities.length > 0) {
-        throw new BadRequestException('Todas las cantidades deben ser mayores a 0');
-      }
-
       const orderProducts = await this.calculateOrderProducts(updateData.products);
       const { total, totalQuantity } = OrderCalculationUtil.calculateOrderTotals(orderProducts);
 
-      updateData.products = orderProducts;
-      updateData.total = total;
-      updateData.totalQuantity = totalQuantity;
+      updateOrderData.products = orderProducts;
+      updateOrderData.total = total;
+      updateOrderData.totalQuantity = totalQuantity;
     }
-    DatabaseUtil.validateObjectId(id, OrderMessages.INVALID_ID);
-    await DatabaseUtil.checkExists(this.orderModel, { _id: id }, OrderMessages.NOT_FOUND);
 
-    return this.orderModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
+    return this.orderModel.findByIdAndUpdate(id, updateOrderData, { new: true }).exec();
   }
 
-  async deleteById(id: string): Promise<any> {
+  async deleteById(id: string): Promise<DeleteOrderResponseDto> {
     DatabaseUtil.validateObjectId(id, OrderMessages.INVALID_ID);
     await DatabaseUtil.checkExists(this.orderModel, { _id: id }, OrderMessages.NOT_FOUND);
 
-    return this.orderModel.findByIdAndDelete(id).exec();
+    await this.orderModel.findByIdAndDelete(id).exec();
+
+    return {
+      message: OrderMessages.DELETED_SUCCESS,
+    };
   }
 
   async findOrdersForReports(filters: {
@@ -259,7 +259,7 @@ export class OrdersRepository {
   }
 
   private async calculateOrderProducts(
-    products: { productId: string; quantity: number }[],
+    products: OrderProductDto[],
   ): Promise<{ productId: Types.ObjectId; quantity: number; price: number; name: string }[]> {
     const productIds = products.map(p => p.productId);
     const productDetails = await this.productsService.findManyByIds(productIds);
@@ -281,14 +281,59 @@ export class OrdersRepository {
     });
   }
 
+  private validateOrderData(
+    orderData: CreateOrderDto | UpdateOrderDto,
+    products: OrderProductDto[],
+    isUpdate: boolean = false,
+  ): void {
+    if (!isUpdate) {
+      if (!orderData.clientId?.toString().trim()) {
+        throw new BadRequestException(OrderMessages.USER_ID_REQUIRED);
+      }
+
+      if (!orderData.clientName?.trim()) {
+        throw new BadRequestException('El nombre del cliente es requerido');
+      }
+    }
+
+    if (products) {
+      if (!products || products.length === 0) {
+        throw new BadRequestException(OrderMessages.EMPTY_PRODUCTS);
+      }
+
+      const invalidQuantities = products.filter(p => p.quantity <= 0);
+      if (invalidQuantities.length > 0) {
+        throw new BadRequestException(OrderMessages.INVALID_QUANTITY);
+      }
+    }
+  }
+
+  private validateOrderUpdate(existingOrder: Order, updateData: UpdateOrderDto): void {
+    if (existingOrder.status === 'completed' || existingOrder.status === 'cancelled') {
+      throw new ForbiddenException('No se puede modificar una orden completada o cancelada');
+    }
+
+    if (updateData.status) {
+      if (!this.isValidStatusTransition(existingOrder.status, updateData.status)) {
+        throw new BadRequestException(
+          `No se puede cambiar el estado de ${existingOrder.status} a ${updateData.status}`,
+        );
+      }
+    }
+
+    if (updateData.products) {
+      this.validateOrderData(updateData, updateData.products, true);
+    }
+  }
+
   private isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
     const validTransitions: Record<string, string[]> = {
       pending: ['processing', 'cancelled'],
       processing: ['shipped', 'cancelled'],
       shipped: ['delivered', 'returned'],
       delivered: ['completed'],
-      cancelled: [], // No se puede cambiar desde cancelado
-      completed: [], // No se puede cambiar desde completado
+      cancelled: [],
+      completed: [],
       returned: ['refunded'],
       refunded: [],
     };

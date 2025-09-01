@@ -9,17 +9,18 @@ import {
   UseGuards,
   UploadedFile,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ApiFile } from '../../common/decorators/api-file.decorator';
 import { ProductsService } from '../services/products.service';
 import {
   CreateProductDto,
   UpdateProductDto,
   SearchProductDto,
   ProductResponseDto,
+  DeleteProductResponseDto,
 } from '../dto';
 import { PaginatedData } from '../../common/interfaces';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { ApiFile } from '../../common/decorators/api-file.decorator';
 import {
   CreateProductDecorator,
   FindAllProductDecorator,
@@ -77,7 +78,7 @@ export class ProductsController {
 
   @Delete(':id')
   @DeleteProductDecorator()
-  remove(@Param('id') id: string): Promise<{ message: string }> {
+  remove(@Param('id') id: string): Promise<DeleteProductResponseDto> {
     return this.productsService.remove(id);
   }
 }

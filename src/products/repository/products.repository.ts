@@ -1,32 +1,70 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from '../schemas/product.schema';
-import { DatabaseUtil } from '../../common/utils';
+import { DatabaseUtil, RepositoryBaseUtil } from '../../common/utils';
 import { ProductMessages } from '../enums';
+import { SearchProductDto, DeleteProductResponseDto } from '../dto';
 
 @Injectable()
 export class ProductsRepository {
   constructor(@InjectModel(Product.name) private productModel: Model<ProductDocument>) {}
 
   async create(productData: Partial<Product>): Promise<any> {
-    // Validar que el precio sea mayor a 0
-    if (productData.price <= 0) {
-      throw new BadRequestException(ProductMessages.INVALID_PRICE);
-    }
+    this.validateProductData(productData, false);
 
-    // Validar que el SKU tenga formato adecuado
-    if (!this.isValidSku(productData.sku)) {
-      throw new BadRequestException(ProductMessages.INVALID_SKU);
+    const existing = await this.findByWhereCondition({ sku: productData.sku });
+    if (existing) {
+      throw new BadRequestException(ProductMessages.ALREADY_EXISTS);
     }
-
-    await DatabaseUtil.checkNotExists(
-      () => this.findByWhereCondition({ sku: productData.sku }),
-      ProductMessages.ALREADY_EXISTS,
-    );
 
     const product = new this.productModel(productData);
-    return await product.save();
+    return product.save();
+  }
+
+  async findAll(): Promise<Product[]> {
+    return RepositoryBaseUtil.findAll(this.findByWhereCondition.bind(this));
+  }
+
+  async findOneById(id: string): Promise<Product> {
+    DatabaseUtil.validateObjectId(id, ProductMessages.INVALID_ID);
+    const product = await this.findByWhereCondition({ _id: id });
+
+    if (!product) {
+      throw new NotFoundException(ProductMessages.NOT_FOUND);
+    }
+
+    return product;
+  }
+
+  async search(searchDto: SearchProductDto): Promise<any> {
+    return RepositoryBaseUtil.search(
+      searchDto,
+      {
+        name: searchDto.name,
+        sku: searchDto.sku,
+        minPrice: searchDto.minPrice,
+        maxPrice: searchDto.maxPrice,
+      },
+      this.findByWhereCondition.bind(this),
+    );
+  }
+
+  async findManyByIds(ids: string[]): Promise<Product[]> {
+    if (!ids || ids.length === 0) {
+      throw new BadRequestException(ProductMessages.INVALID_PRODUCTS);
+    }
+
+    const products = (await this.findByWhereCondition(
+      { _id: { $in: ids } },
+      { multiple: true },
+    )) as Product[];
+
+    if (products.length !== ids.length) {
+      throw new NotFoundException('Algunos productos no fueron encontrados');
+    }
+
+    return products;
   }
 
   async findByWhereCondition(
@@ -43,32 +81,50 @@ export class ProductsRepository {
   }
 
   async updateById(id: string, updateData: Partial<Product>): Promise<any> {
-    // Validar precio si se está actualizando
-    if (updateData.price !== undefined && updateData.price <= 0) {
-      throw new BadRequestException(ProductMessages.INVALID_PRICE);
-    }
-
-    // Validar SKU si se está actualizando
-    if (updateData.sku && !this.isValidSku(updateData.sku)) {
-      throw new BadRequestException(ProductMessages.INVALID_SKU);
-    }
-
+    this.validateProductData(updateData, true);
+    
     DatabaseUtil.validateObjectId(id, ProductMessages.INVALID_ID);
     await DatabaseUtil.checkExists(this.productModel, { _id: id }, ProductMessages.NOT_FOUND);
 
     return this.productModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
   }
 
-  async deleteById(id: string): Promise<any> {
+  async deleteById(id: string): Promise<DeleteProductResponseDto> {
     DatabaseUtil.validateObjectId(id, ProductMessages.INVALID_ID);
     await DatabaseUtil.checkExists(this.productModel, { _id: id }, ProductMessages.NOT_FOUND);
 
-    // Soft delete - marcar como inactivo
-    return this.productModel.findByIdAndUpdate(id, { isActive: false }, { new: true }).exec();
+    await this.productModel.findByIdAndUpdate(id, { isActive: false }, { new: true }).exec();
+
+    return {
+      message: ProductMessages.DELETED_SUCCESS,
+    };
+  }
+
+  private validateProductData(productData: Partial<Product>, isUpdate: boolean = false): void {
+    if (productData.price !== undefined && productData.price <= 0) {
+      throw new BadRequestException(ProductMessages.INVALID_PRICE);
+    }
+
+    if (productData.sku && !this.isValidSku(productData.sku)) {
+      throw new BadRequestException(ProductMessages.INVALID_SKU);
+    }
+
+    if (!isUpdate) {
+      if (!productData.name?.trim()) {
+        throw new BadRequestException(ProductMessages.NAME_REQUIRED);
+      }
+
+      if (!productData.sku?.trim()) {
+        throw new BadRequestException(ProductMessages.SKU_REQUIRED);
+      }
+
+      if (productData.price === undefined) {
+        throw new BadRequestException(ProductMessages.PRICE_REQUIRED);
+      }
+    }
   }
 
   private isValidSku(sku: string): boolean {
-    // SKU debe contener solo letras mayúsculas, números y guiones
     const skuRegex = /^[A-Z0-9-]+$/;
     return skuRegex.test(sku) && sku.length >= 3 && sku.length <= 50;
   }

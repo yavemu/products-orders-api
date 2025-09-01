@@ -9,6 +9,9 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CsvResponseInterceptor } from '../../common/interceptors';
 import { OrdersService } from '../services/orders.service';
 import {
   CreateOrderDto,
@@ -17,11 +20,9 @@ import {
   OrderReportsDto,
   OrderResponseDto,
   OrderReportsResponseDto,
+  DeleteOrderResponseDto,
 } from '../dto';
 import { PaginatedData } from '../../common/interfaces';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CsvResponseInterceptor } from '../../common/interceptors';
 import {
   CreateOrderDecorator,
   FindAllOrderDecorator,
@@ -74,7 +75,7 @@ export class OrdersController {
 
   @Delete(':id')
   @DeleteOrderDecorator()
-  remove(@Param('id') id: string): Promise<{ message: string }> {
+  remove(@Param('id') id: string): Promise<DeleteOrderResponseDto> {
     return this.ordersService.remove(id);
   }
 

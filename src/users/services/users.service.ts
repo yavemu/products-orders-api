@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CreateUserDto,
   SearchUserDto,
@@ -10,7 +10,6 @@ import { UsersRepository } from '../repository/users.repository';
 import { User } from '../schemas/user.schema';
 import { HttpResponseUtil } from '../../common/utils';
 import { PaginatedData } from '../../common/interfaces';
-import { UserMessages } from '../enums';
 
 @Injectable()
 export class UsersService {
@@ -22,19 +21,13 @@ export class UsersService {
   }
 
   async findAll(): Promise<PaginatedData<UserResponseDto>> {
-    const users = (await this.usersRepository.findByWhereCondition(
-      {},
-      { multiple: true },
-    )) as User[];
+    const users = await this.usersRepository.findAll();
     const userDtos = users.map(user => this.mapToDto(user));
     return HttpResponseUtil.createListResponse(userDtos);
   }
 
   async findOneById(id: string): Promise<UserResponseDto> {
-    const user = (await this.usersRepository.findByWhereCondition({ _id: id })) as User;
-    if (!user) {
-      throw new NotFoundException(UserMessages.NOT_FOUND);
-    }
+    const user = await this.usersRepository.findOneById(id);
     return this.mapToDto(user);
   }
 
@@ -44,46 +37,18 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<DeleteUserResponseDto> {
-    await this.usersRepository.deleteById(id);
-    return {
-      message: UserMessages.DELETED_SUCCESS,
-    };
+    return this.usersRepository.deleteById(id);
   }
 
   async search(searchDto: SearchUserDto): Promise<PaginatedData<UserResponseDto>> {
-    const page = searchDto.page || 1;
-    const limit = searchDto.limit || 10;
-
-    const filter = HttpResponseUtil.buildSearchFilter({
-      firstName: searchDto.firstName,
-      lastName: searchDto.lastName,
-      email: searchDto.email,
-    });
-
-    const result = await this.usersRepository.findByWhereCondition(filter, { page, limit });
+    const result = await this.usersRepository.search(searchDto);
     return HttpResponseUtil.processPaginatedResult(result, (user: User) => this.mapToDto(user));
   }
 
-  // Usado para auth
   async validateCredentials(email: string, password: string): Promise<User | null> {
-    const user = (await this.usersRepository.findByWhereCondition(
-      { email },
-      { select: '+password' },
-    )) as Promise<User>;
-
-    if (!user) {
-      return null;
-    }
-
-    const userDoc = user as unknown as {
-      comparePassword: (password: string) => Promise<boolean>;
-    };
-    const isPasswordValid = await userDoc.comparePassword(password);
-
-    return isPasswordValid ? user : null;
+    return this.usersRepository.validateCredentials(email, password);
   }
 
-  // Usado para auth
   async createForAuth(createUserDto: CreateUserDto): Promise<User> {
     return this.usersRepository.create(createUserDto);
   }

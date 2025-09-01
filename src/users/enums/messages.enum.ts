@@ -25,5 +25,5 @@ export enum UserMessages {
   FIRST_NAME_REQUIRED = 'El nombre es requerido',
   LAST_NAME_REQUIRED = 'El apellido es requerido',
   INVALID_EMAIL = 'El formato del email es inválido',
-  PASSWORD_TOO_SHORT = 'La contraseña debe tener al menos 6 caracteres',
+  PASSWORD_TOO_SHORT = 'La contraseña debe tener al menos 8 caracteres',
 }

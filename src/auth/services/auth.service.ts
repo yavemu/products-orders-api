@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../users/services/users.service';
 import { RegisterDto } from '../dto';
@@ -16,6 +16,8 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string): Promise<LoginResponse> {
+    this.validateLoginInput(email, password);
+
     const user = await this.usersService.validateCredentials(email, password);
     if (!user) {
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
@@ -25,6 +27,8 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<RegisterResponse> {
+    this.validateRegisterInput(registerDto);
+
     const userData = {
       ...registerDto,
       role: UserRole.CLIENT,
@@ -32,5 +36,21 @@ export class AuthService {
 
     const user = await this.usersService.createForAuth(userData);
     return AuthResponseUtil.createAuthResponse(user, this.jwtService, 'register');
+  }
+
+  private validateLoginInput(email: string, password: string): void {
+    if (!email?.trim()) {
+      throw new BadRequestException(AuthMessages.EMAIL_REQUIRED);
+    }
+
+    if (!password?.trim()) {
+      throw new BadRequestException(AuthMessages.PASSWORD_REQUIRED);
+    }
+  }
+
+  private validateRegisterInput(registerDto: RegisterDto): void {
+    if (!registerDto) {
+      throw new BadRequestException(AuthMessages.REGISTER_DATA_REQUIRED);
+    }
   }
 }

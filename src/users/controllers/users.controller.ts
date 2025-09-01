@@ -1,9 +1,15 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
-import { UsersService } from '../services/users.service';
-import { CreateUserDto, SearchUserDto, UpdateUserDto, UserResponseDto } from '../dto';
-import { PaginatedData } from '../../common/interfaces';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { UsersService } from '../services/users.service';
+import {
+  CreateUserDto,
+  SearchUserDto,
+  UpdateUserDto,
+  UserResponseDto,
+  DeleteUserResponseDto,
+} from '../dto';
+import { PaginatedData } from '../../common/interfaces';
 import {
   CreateUserDecorator,
   DeleteUserDecorator,
@@ -52,7 +58,7 @@ export class UsersController {
 
   @Delete(':id')
   @DeleteUserDecorator()
-  remove(@Param('id') id: string): Promise<{ message: string }> {
+  remove(@Param('id') id: string): Promise<DeleteUserResponseDto> {
     return this.usersService.remove(id);
   }
 }

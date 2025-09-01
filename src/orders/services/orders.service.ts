@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  UnprocessableEntityException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, UnprocessableEntityException } from '@nestjs/common';
 import {
   CreateOrderDto,
   UpdateOrderDto,
@@ -13,13 +7,13 @@ import {
   OrderReportsResponseDto,
   OrderReportItemDto,
   OrderResponseDto,
+  DeleteOrderResponseDto,
 } from '../dto';
 import { OrdersRepository } from '../repository/orders.repository';
 import { Order } from '../schemas/order.schema';
 import { HttpResponseUtil, ValidationUtil } from '../../common/utils';
 import { CsvUtil } from '../utils';
 import { PaginatedData } from '../../common/interfaces';
-import { OrderMessages } from '../enums';
 
 @Injectable()
 export class OrdersService {
@@ -31,18 +25,12 @@ export class OrdersService {
   }
 
   async findOne(id: string): Promise<OrderResponseDto> {
-    const order = (await this.ordersRepository.findByWhereCondition({ _id: id })) as Order;
-    if (!order) {
-      throw new NotFoundException(OrderMessages.NOT_FOUND);
-    }
+    const order = await this.ordersRepository.findOneById(id);
     return this.mapToDto(order);
   }
 
   async findAll(): Promise<PaginatedData<OrderResponseDto>> {
-    const orders = (await this.ordersRepository.findByWhereCondition(
-      {},
-      { multiple: true },
-    )) as Order[];
+    const orders = await this.ordersRepository.findAll();
     const orderDtos = orders.map(order => this.mapToDto(order));
     return HttpResponseUtil.createListResponse(orderDtos);
   }
@@ -52,26 +40,12 @@ export class OrdersService {
     return this.mapToDto(updatedOrder);
   }
 
-  async remove(id: string): Promise<{ message: string }> {
-    await this.ordersRepository.deleteById(id);
-    return {
-      message: OrderMessages.DELETED_SUCCESS,
-    };
+  async remove(id: string): Promise<DeleteOrderResponseDto> {
+    return this.ordersRepository.deleteById(id);
   }
 
   async search(searchDto: SearchOrderDto): Promise<PaginatedData<OrderResponseDto>> {
-    const page = searchDto.page || 1;
-    const limit = searchDto.limit || 10;
-
-    const filter = HttpResponseUtil.buildSearchFilter({
-      clientName: searchDto.clientName,
-      identifier: searchDto.identifier,
-      status: searchDto.status,
-      minTotal: searchDto.minTotal,
-      maxTotal: searchDto.maxTotal,
-    });
-
-    const result = await this.ordersRepository.findByWhereCondition(filter, { page, limit });
+    const result = await this.ordersRepository.search(searchDto);
     return HttpResponseUtil.processPaginatedResult(result, (order: Order) => this.mapToDto(order));
   }
 
