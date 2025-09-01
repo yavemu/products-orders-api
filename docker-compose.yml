@@ -7,11 +7,14 @@ services:
       context: .
       target: production
     ports:
-      - "3002:3000"
+      - "3000:3000"
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     volumes:
       - ./uploads:/app/uploads
       - /app/node_modules
@@ -19,10 +22,11 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
 
   # Backend API - Desarrollo
   api-dev:
@@ -30,36 +34,23 @@ services:
       context: .
       target: development
     ports:
-      - "3004:3000"
+      - "3001:3000"
     env_file:
       - .env
+    environment:
+      - NODE_ENV=development
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     volumes:
       - .:/app
       - /app/node_modules
+      - ./uploads:/app/uploads
     networks:
       - app-network
     restart: unless-stopped
     command: ["npm", "run", "start:dev"]
 
-  # Documentación (Swagger UI o similar)
-  docs:
-    build:
-      context: .
-      target: production
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    depends_on:
-      - mongodb
-    volumes:
-      - ./uploads:/app/uploads
-      - /app/node_modules
-    networks:
-      - app-network
-    restart: unless-stopped
 
   # Base de datos MongoDB
   mongodb:
@@ -70,12 +61,18 @@ services:
       - mongodb_data:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
-      - MONGO_INITDB_DATABASE=products-order
+      - MONGO_INITDB_DATABASE=products-order-mongo
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   # Interfaz web para MongoDB (opcional)
   mongo-express:

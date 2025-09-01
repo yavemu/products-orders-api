@@ -4,9 +4,9 @@ import { ConfigModule } from '@nestjs/config';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { AuthModule } from './auth/auth.module';
-
-import { ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
+import { CommonModule } from './common/common.module';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -20,6 +20,7 @@ import { UsersModule } from './users/users.module';
       }),
       inject: [ConfigService],
     }),
+    CommonModule,
     ProductsModule,
     OrdersModule,
     AuthModule,

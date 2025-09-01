@@ -1,20 +1,27 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { SearchUserDto, UserResponseDto } from '../dto';
+import {
+  ApiStandardResponses,
+  ApiCommonErrorResponses,
+} from '../../common/decorators/api-responses.decorator';
 
 export function SearchUserDecorator() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({
-      summary: 'Search users',
-      description: 'Searches users by first name, last name, or email.',
+      summary: 'Buscar usuarios',
+      description: 'Busca usuarios por nombre, apellido o email.',
     }),
     ApiBody({ type: SearchUserDto }),
-    ApiResponse({
-      status: 200,
-      description: 'List of users matching the search criteria',
-      type: [UserResponseDto],
+    ApiStandardResponses({
+      success: {
+        status: 200,
+        description: 'Búsqueda de usuarios completada exitosamente',
+        type: UserResponseDto,
+        isArray: true,
+      },
     }),
-    ApiResponse({ status: 400, description: 'Bad Request - Invalid search criteria' }),
+    ApiCommonErrorResponses(),
   );
 }

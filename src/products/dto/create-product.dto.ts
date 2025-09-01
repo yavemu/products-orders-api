@@ -1,23 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsNotEmpty, IsPositive, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsNotEmpty,
+  IsPositive,
+  MinLength,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({
-    description: 'Product name - unique identifier for the product',
+    description: 'Nombre del producto',
     example: 'Laptop Gaming ASUS ROG',
     type: String,
     required: true,
     minLength: 3,
     maxLength: 100,
   })
-  @IsString({ message: 'Product name must be a string' })
-  @IsNotEmpty({ message: 'Product name is required' })
-  @MinLength(3, { message: 'Product name must be at least 3 characters long' })
-  @MaxLength(100, { message: 'Product name cannot exceed 100 characters' })
+  @IsString({ message: 'El nombre del producto debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El nombre del producto es requerido' })
+  @MinLength(3, { message: 'El nombre del producto debe tener al menos 3 caracteres' })
+  @MaxLength(100, { message: 'El nombre del producto no puede exceder 100 caracteres' })
+  @Matches(/^[a-zA-Z0-9À-ÿ\u00f1\u00d1\s\-_.,()]+$/, {
+    message: 'El nombre solo puede contener letras, números, espacios y caracteres básicos',
+  })
   name: string;
 
   @ApiProperty({
-    description: 'Product SKU - Stock Keeping Unit, must be unique across all products',
+    description: 'SKU del producto - Código único de inventario',
     example: 'LP-ASUS-ROG-2024-001',
     type: String,
     required: true,
@@ -25,30 +36,36 @@ export class CreateProductDto {
     maxLength: 50,
     pattern: '^[A-Z0-9-]+$',
   })
-  @IsString({ message: 'Product SKU must be a string' })
-  @IsNotEmpty({ message: 'Product SKU is required' })
-  @MinLength(5, { message: 'Product SKU must be at least 5 characters long' })
-  @MaxLength(50, { message: 'Product SKU cannot exceed 50 characters' })
+  @IsString({ message: 'El SKU debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El SKU es requerido' })
+  @MinLength(5, { message: 'El SKU debe tener al menos 5 caracteres' })
+  @MaxLength(50, { message: 'El SKU no puede exceder 50 caracteres' })
+  @Matches(/^[A-Z0-9-]+$/, {
+    message: 'El SKU solo puede contener letras mayúsculas, números y guiones',
+  })
   sku: string;
 
   @ApiProperty({
-    description: 'Product price in USD - must be a positive number with up to 2 decimal places',
+    description: 'Precio del producto en USD - debe ser un número positivo con hasta 2 decimales',
     example: 1299.99,
     type: Number,
     required: true,
     minimum: 0.01,
     maximum: 999999.99,
   })
-  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Price must be a number with up to 2 decimal places' })
-  @IsNotEmpty({ message: 'Product price is required' })
-  @IsPositive({ message: 'Product price must be a positive number' })
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'El precio debe ser un número con hasta 2 decimales' },
+  )
+  @IsNotEmpty({ message: 'El precio es requerido' })
+  @IsPositive({ message: 'El precio debe ser un número positivo' })
   price: number;
 
   @ApiProperty({
     type: 'string',
     format: 'binary',
-    description: 'Product image file - supported formats: JPG, PNG, WEBP (max 5MB)',
-    required: false,
+    description: 'Archivo de imagen del producto - formatos soportados: JPG, PNG, WEBP (máx 5MB)',
+    required: true,
   })
   picture?: any;
 }

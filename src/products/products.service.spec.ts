@@ -3,7 +3,6 @@ import { ProductsService } from './products.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { Model } from 'mongoose';
-import { NotFoundException } from '@nestjs/common';
 
 const mockProduct = {
   _id: 'someId',
@@ -15,7 +14,9 @@ const mockProduct = {
   createdAt: new Date(),
   updatedAt: new Date(),
   save: jest.fn().mockResolvedValue(this),
-  toObject: function() { return this; },
+  toObject: function () {
+    return this;
+  },
 };
 
 const mockProductModel = {
@@ -33,7 +34,6 @@ mockProductModel.findById.mockReturnValue({
 mockProductModel.find.mockReturnValue({
   exec: jest.fn().mockResolvedValue([mockProduct]),
 });
-
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -111,7 +111,7 @@ describe('ProductsService', () => {
         toObject: () => ({ ...mockProduct, ...createDto, _id: mockProduct._id }),
       };
 
-      mockProductModel.create.mockResolvedValue(createdProduct as any);
+      mockProductModel.create.mockResolvedValue(createdProduct as Product);
 
       const result = await service.create(createDto);
 

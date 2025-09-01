@@ -1,19 +1,26 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserResponseDto } from '../dto';
+import {
+  ApiStandardResponses,
+  ApiCommonErrorResponses,
+} from '../../common/decorators/api-responses.decorator';
 
 export function FindAllUserDecorator() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({
-      summary: 'Get all users',
-      description: 'Returns a list of all users in the system.',
+      summary: 'Obtener todos los usuarios',
+      description: 'Retorna una lista de todos los usuarios del sistema.',
     }),
-    ApiResponse({
-      status: 200,
-      description: 'List of users retrieved successfully',
-      type: [UserResponseDto],
+    ApiStandardResponses({
+      success: {
+        status: 200,
+        description: 'Lista de usuarios obtenida exitosamente',
+        type: UserResponseDto,
+        isArray: true,
+      },
     }),
-    ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' }),
+    ApiCommonErrorResponses(),
   );
 }

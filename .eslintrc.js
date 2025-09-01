@@ -30,4 +30,20 @@ module.exports = {
       'semi': true
     }]
   },
+  overrides: [
+    {
+      files: [
+        'src/common/utils/**/*.ts',
+        'src/common/interfaces/**/*.ts',
+        'src/common/dto/**/*.ts',
+        'src/common/decorators/**/*.ts',
+        'src/common/interceptors/**/*.ts',
+        'src/**/*.dto.ts',
+        'src/**/repository/**/*.ts'
+      ],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off'
+      }
+    }
+  ],
 };

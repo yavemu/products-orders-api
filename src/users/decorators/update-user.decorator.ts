@@ -1,19 +1,28 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateUserDto, UserResponseDto } from '../dto';
+import {
+  ApiStandardResponses,
+  ApiCommonErrorResponses,
+} from '../../common/decorators/api-responses.decorator';
 
 export function UpdateUserDecorator() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({
-      summary: 'Update user details',
-      description: 'Updates only the first name and last name of the user.',
+      summary: 'Actualizar datos de usuario',
+      description: 'Actualiza únicamente el nombre y apellido del usuario.',
     }),
-    ApiParam({ name: 'id', type: String }),
+    ApiParam({ name: 'id', type: String, description: 'ID único del usuario' }),
     ApiBody({ type: UpdateUserDto }),
-    ApiResponse({ status: 200, description: 'User updated successfully', type: UserResponseDto }),
-    ApiResponse({ status: 400, description: 'Bad Request - Invalid input data' }),
-    ApiResponse({ status: 404, description: 'User not found' }),
-    ApiResponse({ status: 401, description: 'Unauthorized' }),
+    ApiStandardResponses({
+      success: {
+        status: 200,
+        description: 'Usuario actualizado exitosamente',
+        type: UserResponseDto,
+      },
+      errors: [{ status: 404, description: 'Usuario no encontrado' }],
+    }),
+    ApiCommonErrorResponses(),
   );
 }

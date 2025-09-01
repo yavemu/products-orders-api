@@ -1,33 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, MaxLength, IsEmail } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'Username for authentication - case sensitive',
-    example: 'admin',
+    description: 'Email del usuario para autenticación',
+    example: 'yam@example.com',
     type: String,
     required: true,
-    minLength: 3,
-    maxLength: 50,
+    format: 'email',
   })
-  @IsString({ message: 'Username must be a string' })
-  @IsNotEmpty({ message: 'Username is required' })
-  @MinLength(3, { message: 'Username must be at least 3 characters long' })
-  @MaxLength(50, { message: 'Username cannot exceed 50 characters' })
-  username: string;
+  @IsString({ message: 'El email debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El email es requerido' })
+  @IsEmail({}, { message: 'Debe ser un email válido' })
+  email: string;
 
   @ApiProperty({
-    description: 'Password for authentication - case sensitive',
-    example: 'admin',
+    description: 'Contraseña del usuario para autenticación',
+    example: 'MySecure123!',
     type: String,
     required: true,
-    minLength: 3,
+    minLength: 8,
     maxLength: 100,
     format: 'password',
   })
-  @IsString({ message: 'Password must be a string' })
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(3, { message: 'Password must be at least 3 characters long' })
-  @MaxLength(100, { message: 'Password cannot exceed 100 characters' })
+  @IsString({ message: 'La contraseña debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'La contraseña es requerida' })
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @MaxLength(100, { message: 'La contraseña no puede exceder 100 caracteres' })
   password: string;
 }

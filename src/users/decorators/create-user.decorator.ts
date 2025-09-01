@@ -1,6 +1,10 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateUserDto, UserResponseDto } from '../dto';
+import {
+  ApiStandardResponses,
+  ApiCommonErrorResponses,
+} from '../../common/decorators/api-responses.decorator';
 
 export function CreateUserDecorator() {
   return applyDecorators(
@@ -10,11 +14,14 @@ export function CreateUserDecorator() {
       description: 'Registers a new user with first name, last name, email and password.',
     }),
     ApiBody({ type: CreateUserDto }),
-    ApiResponse({ status: 201, description: 'User created successfully', type: UserResponseDto }),
-    ApiResponse({
-      status: 400,
-      description: 'Bad Request - Invalid input data or validation errors',
+    ApiStandardResponses({
+      success: {
+        status: 201,
+        description: 'Usuario creado exitosamente',
+        type: UserResponseDto,
+      },
+      errors: [{ status: 409, description: 'Usuario ya existe con este email' }],
     }),
-    ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' }),
+    ApiCommonErrorResponses(),
   );
 }
