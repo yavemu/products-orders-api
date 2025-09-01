@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UpdateOrderDto, OrderResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,7 @@ import {
 
 export function UpdateOrderDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
+    
     ApiOperation({
       summary: 'Actualizar una orden',
       description:

@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiBody, ApiParam } from '@nestjs/swagger';
 import { UpdateUserDto, UserResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,7 @@ import {
 
 export function UpdateUserDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
+    
     ApiOperation({
       summary: 'Actualizar datos de usuario',
       description: 'Actualiza únicamente el nombre y apellido del usuario.',

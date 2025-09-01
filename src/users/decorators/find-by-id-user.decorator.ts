@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiParam } from '@nestjs/swagger';
 import { UserResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,6 @@ import {
 
 export function FindByIdUserDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
     ApiOperation({
       summary: 'Obtener usuario por ID',
       description: 'Retorna un usuario específico por su ID único.',

@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {  ApiOperation } from '@nestjs/swagger';
 import { UserResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,7 @@ import {
 
 export function FindAllUserDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
+    
     ApiOperation({
       summary: 'Obtener todos los usuarios',
       description: 'Retorna una lista de todos los usuarios del sistema.',

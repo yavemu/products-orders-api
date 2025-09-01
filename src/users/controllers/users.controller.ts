@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Public } from '../../auth/decorators';
 import { UsersService } from '../services/users.service';
 import {
   CreateUserDto,
@@ -21,12 +22,12 @@ import {
 
 @Controller('users')
 @ApiTags('Usuarios')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @Public()
   @CreateUserDecorator()
   create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);

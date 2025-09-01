@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import { OrderResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,7 @@ import {
 
 export function FindByIdOrderDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
+    
     ApiOperation({
       summary: 'Obtener orden por ID',
       description:

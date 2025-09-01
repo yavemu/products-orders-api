@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiBody } from '@nestjs/swagger';
 import { CreateUserDto, UserResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,6 @@ import {
 
 export function CreateUserDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
     ApiOperation({
       summary: 'Create a new user',
       description: 'Registers a new user with first name, last name, email and password.',

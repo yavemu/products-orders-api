@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import { ProductResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,7 @@ import {
 
 export function DeleteProductDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
+    
     ApiOperation({
       summary: 'Eliminar un producto',
       description:

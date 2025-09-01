@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { ProductResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,6 @@ import {
 
 export function CreateProductDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
     ApiConsumes('multipart/form-data'),
     ApiOperation({
       summary: 'Crear un nuevo producto',

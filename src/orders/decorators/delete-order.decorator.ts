@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import { OrderResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,7 @@ import {
 
 export function DeleteOrderDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
+    
     ApiOperation({
       summary: 'Eliminar una orden',
       description: 'Elimina una orden de la base de datos. Esta acción no se puede deshacer.',

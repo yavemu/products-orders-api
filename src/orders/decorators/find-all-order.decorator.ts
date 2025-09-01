@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import { OrderResponseDto } from '../dto';
 import {
   ApiStandardResponses,
@@ -8,7 +8,6 @@ import {
 
 export function FindAllOrderDecorator() {
   return applyDecorators(
-    ApiBearerAuth(),
     ApiOperation({
       summary: 'Obtener todas las órdenes',
       description: 'Recupera una lista de todas las órdenes en la base de datos',

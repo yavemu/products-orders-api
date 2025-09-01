@@ -13,7 +13,7 @@ export class SwaggerDocumentBuilder {
           bearerFormat: 'JWT',
           description: 'JWT Authorization header using Bearer token',
         },
-        'default',
+        'JWT-auth',
       )
       .build();
   }
