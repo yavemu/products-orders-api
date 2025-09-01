@@ -10,7 +10,7 @@ export enum UserMessages {
   // Error messages
   NOT_FOUND = 'Usuario no encontrado',
   ALREADY_EXISTS = 'Ya existe un usuario con este email',
-  INVALID_ID = 'ID de usuario inválido',
+  INVALID_ID = 'usuario inválido',
   CREATE_ERROR = 'Error al crear el usuario',
   UPDATE_ERROR = 'Error al actualizar el usuario',
   DELETE_ERROR = 'Error al eliminar el usuario',

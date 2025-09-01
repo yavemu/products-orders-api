@@ -58,13 +58,13 @@ export class OrderCalculationUtil {
   /**
    * Valida que los productos de una orden sean válidos
    */
-  static validateOrderProducts(products: Array<{ quantity: number; price: number }>): void {
+  static validateOrderProducts(products: Array<{ productId?: any; quantity: number; price: number }>): void {
     if (!products || products.length === 0) {
       throw new Error('Se requiere al menos un producto en la orden');
     }
 
     for (const product of products) {
-      if (!product.productId) {
+      if (product.productId && !product.productId) {
         throw new Error('Cada producto debe tener un ID válido');
       }
       if (!product.quantity || product.quantity <= 0) {

@@ -2,19 +2,27 @@
 
 API RESTful para gestión de productos, órdenes y usuarios desarrollada con NestJS, MongoDB y Docker.
 
+## 🚀 Inicio Rápido
+
+Resumen de tecnologías utilizadas y estructura del proyecto.
+
 ## 📋 Índice
 
-- [Descripción](#descripción)
-- [Tecnologías](#tecnologías)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Buenas Prácticas Implementadas](#buenas-prácticas-implementadas)
-- [Instalación y Configuración](#instalación-y-configuración)
-- [Despliegue con Docker](#despliegue-con-docker)
-- [Variables de Entorno Requeridas](#variables-de-entorno-requeridas)
-- [Rutas de la API](#rutas-de-la-api)
-- [Testing](#testing)
-- [Comandos Disponibles](#comandos-disponibles)
-- [Challenge Assessment](#challenge-assessment)
+- [Inicio Rápido](#-inicio-rápido)
+- [Descripción](#-descripción)
+- [Tecnologías](#️-tecnologías)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Buenas Prácticas Implementadas](#️-buenas-prácticas-implementadas)
+- [Despliegue con Docker (Desarrollo)](#-despliegue-con-docker-desarrollo)
+- [Variables de Entorno Requeridas](#-variables-de-entorno-requeridas)
+- [Rutas de la API](#-rutas-de-la-api)
+- [Testing y Coverage](#-testing-y-coverage)
+- [Comandos de Desarrollo](#-comandos-de-desarrollo)
+- [Autenticación](#-autenticación)
+- [Documentación API](#-documentación-api)
+- [Contribuciones](#-contribuciones)
+- [Challenge Assessment](#-challenge-assessment)
+- [Licencia](#-licencia)
 
 ## 🚀 Descripción
 
@@ -109,37 +117,44 @@ src/
 - **Swagger Documentation**: Documentación automática con ejemplos y respuestas de error
 - **JWT Authentication**: Sistema de autenticación integrado en todos los endpoints protegidos
 
-## 🐳 Despliegue con Docker
+## 🐳 Despliegue con Docker (Desarrollo)
 
 ### Requisitos Previos
 - Docker y Docker Compose instalados
 - Archivo `.env` configurado (copiar desde `.env.example`)
 
-### Deploy Completo (Recomendado)
+### Clonar y Configurar Proyecto
 
 ```bash
-# 1. Configurar variables de entorno
+# 1. Clonar el repositorio
+git clone git@github.com:yavemu/products-orders-api.git
+cd products-orders-api
+
+# 2. Configurar variables de entorno
 cp .env.example .env
 # Editar .env con tus valores
-
-# 2. Deploy completo con limpieza
-npm run docker:rebuild
-
-# O paso a paso:
-npm run docker:clean    # Limpiar contenedores y volúmenes
-npm run docker:build    # Construir imágenes desde cero
-npm run docker:up       # Iniciar todos los servicios
 ```
 
-### Servicios Disponibles
+### Deploy de Desarrollo (Recomendado)
+
+```bash
+# Iniciar servicios para desarrollo
+npm run docker:up       # Servicios con hot reload
+
+# Para limpiar y reconstruir:
+npm run docker:clean    # Limpiar contenedores y volúmenes
+npm run docker:build    # Construir imágenes desde cero
+npm run docker:rebuild  # Limpiar + construir + iniciar
+```
+
+### Servicios de Desarrollo Disponibles
 
 Una vez ejecutado el comando anterior, los siguientes servicios estarán disponibles:
 
 | Servicio | URL | Descripción |
 |----------|-----|-------------|
-| **API Producción** | `http://localhost:3000` | API principal en modo producción |
 | **API Desarrollo** | `http://localhost:3001` | API en modo desarrollo (hot reload) |
-| **Swagger Documentation** | `http://localhost:3000/apidoc` | Documentación interactiva de la API |
+| **Swagger Documentation** | `http://localhost:3001/apidoc` | Documentación interactiva de la API |
 | **MongoDB** | `localhost:27017` | Base de datos MongoDB |
 | **Mongo Express** | `http://localhost:8081` | Interfaz web para MongoDB |
 
@@ -151,7 +166,7 @@ docker-compose ps
 
 # Ver logs
 npm run docker:logs        # Todos los servicios
-npm run docker:logs:api    # Solo API producción
+npm run docker:logs:api    # Solo API desarrollo
 npm run docker:logs:db     # Solo MongoDB
 
 # Reiniciar servicios
@@ -284,7 +299,21 @@ La aplicación se inicializa automáticamente con datos demo realistas:
 - **Productos**: 6 productos con imágenes e información completa
 - **Órdenes**: Órdenes variadas con 1-4 productos cada una, diferentes estados y fechas
 
-## 🧪 Testing
+## 🧪 Testing y Coverage
+
+### Tests Implementados
+
+![Coverage](./coverage/badges/coverage.svg)
+
+**Resultados detallados del coverage:**
+- **Statements**: 19.54% (1219/6238)
+- **Branches**: 2.42% (128/5287) 
+- **Functions**: 17.76% (189/1064)
+- **Lines**: 67.19% (1153/1716)
+- **Tests**: 284 tests pasando ✅
+- **Test Suites**: 16 suites completos
+
+### Comandos de Testing
 
 ```bash
 # Ejecutar tests unitarios
@@ -298,44 +327,60 @@ npm run test:cov
 
 # Tests e2e
 npm run test:e2e
+
+# Ver reporte HTML detallado
+open coverage/lcov-report/index.html
 ```
 
-## 📝 Comandos Disponibles
+### Módulos con Tests Completos
+
+- **Auth Module**: 58 tests (Service, Controller, Guards, Strategy)
+- **Users Module**: 62 tests (Service, Controller, Repository, Integration)  
+- **Products Module**: 87 tests (Service, Controller, Repository, Integration)
+- **Orders Module**: 77 tests (Service, Controller, Repository, Integration)
+
+## 📝 Comandos de Desarrollo
 
 ### Desarrollo Local
 ```bash
-npm run start            # Iniciar en modo producción
-npm run start:dev        # Iniciar en modo desarrollo
+npm run start:dev        # Iniciar en modo desarrollo (recomendado)
 npm run start:debug      # Iniciar en modo debug
 npm run build            # Construir aplicación
 npm run lint             # Ejecutar linting
 npm run format           # Formatear código
 ```
 
-### Docker (Recomendado)
+### Docker para Desarrollo (Recomendado)
 ```bash
-# Deploy completo
-npm run docker:rebuild   # Limpia, construye e inicia todo
+# Deploy de desarrollo
+npm run docker:up        # Iniciar servicios de desarrollo
 
-# Gestión individual
+# Gestión de desarrollo
 npm run docker:clean     # Limpiar completamente
 npm run docker:build     # Construir imágenes
-npm run docker:up        # Iniciar servicios
+npm run docker:rebuild   # Limpiar, construir e iniciar todo
 npm run docker:down      # Parar servicios
 
 # Logs y monitoreo
 npm run docker:logs      # Ver todos los logs
-npm run docker:logs:api  # Ver logs de API
+npm run docker:logs:api  # Ver logs de API desarrollo
 npm run docker:logs:db   # Ver logs de MongoDB
-
-# Servicios específicos
-npm run docker:up:prod   # Solo producción
-npm run docker:up:dev    # Solo desarrollo
-npm run docker:restart   # Reiniciar servicios
 
 # Acceso a contenedores
 npm run docker:shell:api # Acceder a contenedor API
 npm run docker:shell:db  # Acceder a MongoDB shell
+```
+
+### Testing y Coverage
+```bash
+# Ejecutar tests
+npm run test             # Tests unitarios
+npm run test:watch       # Tests en modo watch
+npm run test:cov         # Tests con coverage
+npm run test:e2e         # Tests end-to-end
+
+# Ver reportes de coverage
+open coverage/lcov-report/index.html  # Abrir reporte HTML detallado
 ```
 
 ## 🔐 Autenticación

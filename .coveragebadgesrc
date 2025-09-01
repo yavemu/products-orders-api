@@ -1,0 +1,6 @@
+{
+  "output": "./coverage/badges",
+  "source": "./coverage/coverage-final.json",
+  "style": "for-the-badge",
+  "attributes": ["statements", "branches", "functions", "lines"]
+}
