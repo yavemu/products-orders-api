@@ -1,0 +1,45 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
+import { Product } from '../../products/schemas/product.schema';
+
+export type OrderDocument = Order & Document;
+
+class OrderProduct {
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  productId: Types.ObjectId;
+
+  @Prop({ required: true, min: 1 })
+  quantity: number;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop()
+  name: string;
+}
+
+@Schema({ timestamps: true })
+export class Order {
+  @Prop({ required: true, unique: true })
+  identifier: string;
+
+  @Prop({ required: true })
+  clientName: string;
+
+  @Prop({ required: true })
+  total: number;
+
+  @Prop({ type: [OrderProduct], required: true })
+  products: OrderProduct[];
+
+  @Prop({ default: 'pending' })
+  status: string;
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
+}
+
+export const OrderSchema = SchemaFactory.createForClass(Order);
