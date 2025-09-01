@@ -26,7 +26,7 @@ export class User extends Document {
   @Prop({ required: true, select: false })
   password: string;
 
-  @Prop({ enum: UserRole, default: UserRole.CLIENT })
+  @Prop({ type: String, enum: UserRole, default: UserRole.CLIENT })
   role: UserRole;
 
   @Prop({ default: Date.now })

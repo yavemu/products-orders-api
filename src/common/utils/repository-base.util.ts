@@ -35,7 +35,7 @@ export class RepositoryBaseUtil {
   /**
    * Método genérico para search con paginación
    */
-  static async search<T>(
+  static async search(
     searchDto: { page?: number; limit?: number; [key: string]: any },
     searchFields: Record<string, any>,
     findByWhereCondition: (condition: Record<string, any>, options?: any) => Promise<any>,

@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../users/services/users.service';
 import { RegisterDto } from '../dto';
 import { LoginResponse, RegisterResponse } from '../interfaces';
-import { User } from '../../users/schemas/user.schema';
 import { UserRole } from '../../users/enums';
 import { AuthResponseUtil } from '../utils';
 import { AuthMessages } from '../enums';

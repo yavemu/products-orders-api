@@ -87,7 +87,10 @@ export class UsersRepository {
     DatabaseUtil.validateObjectId(id, UserMessages.INVALID_ID);
     await DatabaseUtil.checkExists(this.userModel, { _id: id }, UserMessages.NOT_FOUND);
 
-    return this.userModel.findByIdAndUpdate(id, updateData, { new: true }).select('-password').exec();
+    return this.userModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .select('-password')
+      .exec();
   }
 
   async deleteById(id: string): Promise<DeleteUserResponseDto> {

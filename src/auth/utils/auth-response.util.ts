@@ -19,7 +19,7 @@ export class AuthResponseUtil {
   /**
    * Genera el payload para el JWT
    */
-  static generateJwtPayload(user: User): Record<string, any> {
+  static generateJwtPayload(user: User): Record<string, string | object> {
     return {
       sub: user._id,
       email: user.email,

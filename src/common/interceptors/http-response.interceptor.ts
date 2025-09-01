@@ -20,6 +20,13 @@ export class HttpResponseInterceptor<T> implements NestInterceptor<T, HttpRespon
     return next.handle().pipe(
       map(data => {
         // Handle different response types
+        if (this.isAuthResponse(data)) {
+          // Auth responses should be returned as-is (login/register)
+          const statusCode = this.getSuccessStatusCode(method);
+          response.status(statusCode);
+          return data;
+        }
+
         if (this.isServiceResponse(data)) {
           // Service already returned structured response (legacy support)
           return this.formatServiceResponse(data, response, method);
@@ -33,6 +40,10 @@ export class HttpResponseInterceptor<T> implements NestInterceptor<T, HttpRespon
 
   private isServiceResponse(data: any): boolean {
     return data && typeof data === 'object' && 'success' in data;
+  }
+
+  private isAuthResponse(data: any): boolean {
+    return data && typeof data === 'object' && 'access_token' in data;
   }
 
   private formatServiceResponse(data: any, response: Response, method: string): HttpResponse<T> {

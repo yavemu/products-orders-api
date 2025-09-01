@@ -19,11 +19,12 @@ API RESTful para gestión de productos, órdenes y usuarios desarrollada con Nes
 
 API completa para gestión de comercio electrónico que incluye:
 
-- **Gestión de Usuarios**: Registro, autenticación, perfiles
-- **Gestión de Productos**: CRUD completo con imágenes y búsquedas avanzadas
-- **Gestión de Órdenes**: Creación, seguimiento y gestión de pedidos
-- **Autenticación JWT**: Sistema seguro de autenticación
-- **Documentación Swagger**: API completamente documentada
+- **Gestión de Usuarios**: Registro, autenticación, CRUD completo y búsquedas
+- **Gestión de Productos**: CRUD con upload de imágenes, búsquedas avanzadas y soft delete
+- **Gestión de Órdenes**: Creación con múltiples productos, cálculos automáticos, transiciones de estado y reportes avanzados
+- **Sistema de Reportes**: Filtros de fecha, agregaciones estadísticas y exportación CSV
+- **Autenticación JWT**: Sistema seguro con guards y middleware
+- **Documentación Swagger**: API completamente documentada con ejemplos
 
 ## 🛠️ Tecnologías
 
@@ -86,23 +87,26 @@ src/
 
 ## 🏗️ Buenas Prácticas Implementadas
 
-### Arquitectura
-- **Clean Architecture**: Separación clara de responsabilidades
-- **Repository Pattern**: Abstracción de acceso a datos
-- **Service Layer Pattern**: Lógica de negocio centralizada
-- **Decorator Pattern**: Documentación Swagger reutilizable
+### Arquitectura Clean Code
+- **Clean Controllers**: Solo retornos de servicios, sin lógica de negocio
+- **Services Lean**: Únicamente transformación de datos para controladores
+- **Repositories Rich**: Lógica de negocio completa, validaciones y operaciones CRUD
+- **Repository Pattern**: Abstracción de acceso a datos con operaciones genéricas
+- **Utility Classes**: Funciones reutilizables para eliminar duplicación de código
 
-### Código Limpio
-- **DRY**: No repetición de código
-- **Single Responsibility**: Cada clase tiene una responsabilidad
-- **Utilities Comunes**: Funciones reutilizables centralizadas
-- **Mensajes Centralizados**: Enums para todos los mensajes
+### Código Limpio y Mantenible
+- **DRY Principle**: Eliminación de ~150 líneas de código duplicado mediante utils
+- **Single Responsibility**: Separación clara de responsabilidades por capas
+- **Mensajes Centralizados**: Enums para todos los mensajes de error y éxito
+- **Validaciones Agrupadas**: Métodos de validación centralizados por módulo
+- **TypeScript Strict**: Tipado estricto y interfaces bien definidas
 
-### Estandarización
-- **HTTP Response Interceptor**: Respuestas consistentes
-- **Validaciones Globales**: DTOs con class-validator
-- **Error Handling**: Manejo consistente de errores
-- **TypeScript Strict**: Tipado estricto
+### Estandarización y Consistencia
+- **HTTP Response Interceptor**: Respuestas uniformes con formato estándar
+- **Validaciones Globales**: DTOs robustos con class-validator
+- **Error Handling**: Manejo consistente de errores con códigos HTTP apropiados
+- **Swagger Documentation**: Documentación automática con ejemplos y respuestas de error
+- **JWT Authentication**: Sistema de autenticación integrado en todos los endpoints protegidos
 
 ## 🐳 Despliegue con Docker
 
@@ -246,20 +250,29 @@ POST   /api/products/search # Buscar productos
 
 #### Órdenes
 ```bash
-GET    /api/orders        # Listar órdenes
-POST   /api/orders        # Crear orden
-GET    /api/orders/:id    # Obtener orden por ID
-PATCH  /api/orders/:id    # Actualizar orden
-DELETE /api/orders/:id    # Eliminar orden
-POST   /api/orders/search # Buscar órdenes
+GET    /api/orders         # Listar órdenes
+POST   /api/orders         # Crear orden (múltiples productos)
+GET    /api/orders/:id     # Obtener orden por ID
+PATCH  /api/orders/:id     # Actualizar orden (validaciones de estado)
+DELETE /api/orders/:id     # Eliminar orden
+POST   /api/orders/search  # Buscar órdenes con filtros
+POST   /api/orders/reports # Generar reportes con estadísticas
 ```
 
-### Datos Demo
-La aplicación se inicializa automáticamente con datos demo:
+#### Reportes y Analytics
+```bash
+POST   /api/orders/reports # Generar reportes avanzados
+# Parámetros: startDate, endDate, clientId, productId, sortBy
+# Respuesta: datos paginados + resumen estadístico
+# Soporte: exportación CSV con returnCsv=true
+```
+
+### Datos Demo Mejorados
+La aplicación se inicializa automáticamente con datos demo realistas:
 - **SuperAdmin**: `admin@demo.com` / `demodemo`
-- **Usuarios de prueba**: 10 usuarios adicionales
-- **Productos**: 12 productos realistas
-- **Órdenes**: 15 órdenes con relaciones
+- **Usuarios de prueba**: Clientes con diferentes roles
+- **Productos**: 6 productos con imágenes e información completa
+- **Órdenes**: Órdenes variadas con 1-4 productos cada una, diferentes estados y fechas
 
 ## 🧪 Testing
 

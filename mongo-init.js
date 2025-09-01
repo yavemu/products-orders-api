@@ -144,7 +144,7 @@ function generateOrderId() {
   return `ORD-${year}${month}${day}-${random}`;
 }
 
-// Crear órdenes de demostración
+// Crear órdenes de demostración con múltiples productos
 const clientNames = [
   'Empresa ABC S.A.',
   'Comercial XYZ Ltda.',
@@ -156,28 +156,55 @@ const orderStatuses = ['pending', 'processing', 'shipped', 'delivered'];
 
 const orders = [];
 
-for (let i = 0; i < 5; i++) {
-  const product = products[Math.floor(Math.random() * products.length)];
-  const quantity = Math.floor(Math.random() * 3) + 1;
-  const total = product.price * quantity;
+// Función para seleccionar productos únicos aleatorios
+function getRandomProducts(productsArray, count) {
+  const shuffled = [...productsArray].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+// Crear 6 órdenes variadas con diferentes cantidades de productos
+const orderTemplates = [
+  { productCount: 1, statusIndex: 0 }, // 1 producto - pending
+  { productCount: 2, statusIndex: 3 }, // 2 productos - shipped  
+  { productCount: 1, statusIndex: 2 }, // 1 producto - delivered
+  { productCount: 3, statusIndex: 0 }, // 3 productos - pending
+  { productCount: 2, statusIndex: 1 }, // 2 productos - processing
+  { productCount: 4, statusIndex: 0 }, // 4 productos - pending
+];
+
+for (let i = 0; i < orderTemplates.length; i++) {
+  const template = orderTemplates[i];
+  const selectedProducts = getRandomProducts(products, template.productCount);
   const clientId = clientIds[i % clientIds.length];
+  
+  let total = 0;
+  let totalQuantity = 0;
+  const orderProducts = [];
+  
+  selectedProducts.forEach((product, index) => {
+    const quantity = Math.floor(Math.random() * 3) + 1; // 1-3 quantity per product
+    const productTotal = product.price * quantity;
+    
+    total += productTotal;
+    totalQuantity += quantity;
+    
+    orderProducts.push({
+      productId: productIds[products.indexOf(product)],
+      quantity: quantity,
+      price: product.price,
+      name: product.name,
+    });
+  });
 
   const order = {
     identifier: generateOrderId(),
     clientId: clientId,
     clientName: clientNames[i % clientNames.length],
     total: Math.round(total * 100) / 100,
-    totalQuantity: quantity,
-    products: [
-      {
-        productId: productIds[products.indexOf(product)],
-        quantity: quantity,
-        price: product.price,
-        name: product.name,
-      },
-    ],
-    status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-    createdAt: new Date(),
+    totalQuantity: totalQuantity,
+    products: orderProducts,
+    status: orderStatuses[template.statusIndex],
+    createdAt: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)), // Random date within last 7 days
     updatedAt: new Date(),
   };
 
@@ -185,4 +212,4 @@ for (let i = 0; i < 5; i++) {
 }
 
 db.orders.insertMany(orders);
-print('✅ Demo orders created with real products, images, and client relationships');
+print('✅ Demo orders created with multiple products per order, varied quantities, and realistic scenarios');

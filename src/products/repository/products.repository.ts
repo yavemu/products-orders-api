@@ -82,7 +82,7 @@ export class ProductsRepository {
 
   async updateById(id: string, updateData: Partial<Product>): Promise<any> {
     this.validateProductData(updateData, true);
-    
+
     DatabaseUtil.validateObjectId(id, ProductMessages.INVALID_ID);
     await DatabaseUtil.checkExists(this.productModel, { _id: id }, ProductMessages.NOT_FOUND);
 

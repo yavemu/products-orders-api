@@ -21,7 +21,11 @@ export function UpdateOrderDecorator() {
         description: 'Orden actualizada exitosamente',
         type: OrderResponseDto,
       },
-      errors: [{ status: 404, description: 'Orden no encontrada' }],
+      errors: [
+        { status: 404, description: 'Orden no encontrada' },
+        { status: 403, description: 'No se puede modificar una orden completada o cancelada' },
+        { status: 400, description: 'Transición de estado no válida' },
+      ],
     }),
     ApiCommonErrorResponses(),
   );

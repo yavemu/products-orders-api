@@ -7,13 +7,17 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Order, OrderDocument } from '../schemas/order.schema';
-import { DatabaseUtil, RepositoryBaseUtil, HttpResponseUtil } from '../../common/utils';
+import { DatabaseUtil, RepositoryBaseUtil } from '../../common/utils';
 import { OrderMessages } from '../enums';
 import { OrderCalculationUtil } from '../utils';
 import { ProductsService } from '../../products/services/products.service';
-import { ProductMessages } from 'src/products/enums';
-import { Product } from 'src/products/schemas/product.schema';
-import { OrderProductDto, SearchOrderDto, DeleteOrderResponseDto, CreateOrderDto, UpdateOrderDto } from '../dto';
+import {
+  OrderProductDto,
+  SearchOrderDto,
+  DeleteOrderResponseDto,
+  CreateOrderDto,
+  UpdateOrderDto,
+} from '../dto';
 
 @Injectable()
 export class OrdersRepository {

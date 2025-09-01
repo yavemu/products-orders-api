@@ -91,14 +91,52 @@ export function ApiStandardResponses(config: ApiResponsesConfig) {
 export function ApiCommonErrorResponses() {
   return applyDecorators(
     ApiResponse({
-      status: 401,
-      description: 'No autorizado',
+      status: 400,
+      description: 'Solicitud inválida - Errores de validación en los datos enviados',
       type: ErrorResponseDto,
+      schema: {
+        example: {
+          statusCode: 400,
+          message: ['El campo es requerido', 'El formato no es válido'],
+          error: 'Bad Request',
+        },
+      },
     }),
     ApiResponse({
-      status: 400,
-      description: 'Error de validación',
+      status: 401,
+      description: 'No autorizado - Token JWT inválido o no proporcionado',
       type: ErrorResponseDto,
+      schema: {
+        example: {
+          statusCode: 401,
+          message: 'No autorizado',
+          error: 'Unauthorized',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 403,
+      description: 'Prohibido - No tienes permisos para realizar esta acción',
+      type: ErrorResponseDto,
+      schema: {
+        example: {
+          statusCode: 403,
+          message: 'Operación no permitida',
+          error: 'Forbidden',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 500,
+      description: 'Error interno del servidor',
+      type: ErrorResponseDto,
+      schema: {
+        example: {
+          statusCode: 500,
+          message: 'Error interno del servidor',
+          error: 'Internal Server Error',
+        },
+      },
     }),
   );
 }
