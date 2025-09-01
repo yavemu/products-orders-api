@@ -85,8 +85,20 @@ export class OrdersService {
       const reportItems: OrderReportItemDto[] = data.map(order => this.mapToReportDto(order));
 
       if (reportsDto.returnCsv) {
-        // Retornar CSV
-        const csvContent = CsvUtil.addUtf8Bom(CsvUtil.convertOrderReportsToCsv(reportItems));
+        // Retornar CSV completo con metadatos
+        const csvMetadata = {
+          total,
+          filters: {
+            startDate: reportsDto.startDate,
+            endDate: reportsDto.endDate,
+            clientId: reportsDto.clientId,
+            productId: reportsDto.productId,
+            sortBy: filters.sortBy,
+          },
+          summary,
+        };
+        
+        const csvContent = CsvUtil.addUtf8Bom(CsvUtil.convertOrderReportsToCsv(reportItems, csvMetadata));
         const headers = CsvUtil.getCsvHeaders('order-reports');
 
         return { csvContent, headers };

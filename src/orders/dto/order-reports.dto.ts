@@ -105,7 +105,7 @@ export class OrderReportsDto {
   returnCsv?: boolean = false;
 
   @ApiPropertyOptional({
-    description: 'Página para paginación (solo aplica para JSON)',
+    description: 'Página para paginación (solo aplica para JSON, ignorado cuando returnCsv=true)',
     example: 1,
     type: Number,
     minimum: 1,
@@ -116,7 +116,7 @@ export class OrderReportsDto {
   page?: number = 1;
 
   @ApiPropertyOptional({
-    description: 'Límite de resultados por página (solo aplica para JSON)',
+    description: 'Límite de resultados por página (solo aplica para JSON, ignorado cuando returnCsv=true)',
     example: 10,
     type: Number,
     minimum: 1,

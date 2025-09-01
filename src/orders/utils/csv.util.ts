@@ -2,43 +2,100 @@ import { OrderReportItemDto } from '../dto';
 
 export class CsvUtil {
   /**
-   * Convierte un array de datos de reporte de órdenes a formato CSV
+   * Convierte un reporte completo de órdenes a formato CSV con una fila por producto
    */
-  static convertOrderReportsToCsv(data: OrderReportItemDto[]): string {
+  static convertOrderReportsToCsv(
+    data: OrderReportItemDto[],
+    metadata: {
+      total: number;
+      filters: {
+        startDate: string;
+        endDate: string;
+        clientId?: string;
+        productId?: string;
+        sortBy: string;
+      };
+      summary: {
+        totalOrders: number;
+        totalRevenue: number;
+        totalQuantitySold: number;
+        averageOrderValue: number;
+      };
+    }
+  ): string {
     if (!data || data.length === 0) {
       return 'No hay datos para exportar';
     }
 
-    // Headers del CSV
+    const sections: string[] = [];
+
+    // Headers del CSV - cada producto en su propia fila
     const headers = [
       'ID Orden',
-      'Identificador',
+      'Identificador Orden',
       'ID Cliente',
       'Nombre Cliente',
-      'Total',
-      'Cantidad Total',
-      'Estado',
-      'Fecha Creación',
-      'Productos (ID:Nombre:Cantidad:Precio)',
+      'Total Orden',
+      'Cantidad Total Orden',
+      'Estado Orden',
+      'Fecha Creacion Orden',
+      'ID Producto',
+      'Nombre Producto',
+      'Cantidad Producto',
+      'Precio Producto',
+      'Subtotal Producto'
     ];
 
-    // Crear las filas de datos
-    const rows = data.map(order => [
-      this.escapeCsvValue(order.orderId),
-      this.escapeCsvValue(order.identifier),
-      this.escapeCsvValue(order.clientId),
-      this.escapeCsvValue(order.clientName),
-      order.total.toString(),
-      order.totalQuantity.toString(),
-      this.escapeCsvValue(order.status),
-      new Date(order.createdAt).toISOString(),
-      this.formatProductsForCsv(order.products),
-    ]);
+    sections.push(headers.join(','));
 
-    // Combinar headers y datos
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    // Crear una fila por cada producto en cada orden
+    data.forEach(order => {
+      if (order.products && order.products.length > 0) {
+        order.products.forEach(product => {
+          const subtotal = product.quantity * product.price;
+          const row = [
+            this.escapeCsvValue(order.orderId),
+            this.escapeCsvValue(order.identifier),
+            this.escapeCsvValue(order.clientId),
+            this.escapeCsvValue(order.clientName),
+            order.total.toFixed(2),
+            order.totalQuantity.toString(),
+            this.escapeCsvValue(order.status),
+            new Date(order.createdAt).toISOString(),
+            this.escapeCsvValue(product.productId),
+            this.escapeCsvValue(product.name),
+            product.quantity.toString(),
+            product.price.toFixed(2),
+            subtotal.toFixed(2)
+          ];
+          sections.push(row.join(','));
+        });
+      }
+    });
 
-    return csvContent;
+    // Agregar líneas vacías antes del resumen
+    sections.push('');
+    sections.push('');
+
+    // Resumen al final
+    sections.push('RESUMEN DEL REPORTE');
+    sections.push(`Periodo del reporte:,${metadata.filters.startDate} al ${metadata.filters.endDate}`);
+    if (metadata.filters.clientId) {
+      sections.push(`Filtro Cliente ID:,${metadata.filters.clientId}`);
+    }
+    if (metadata.filters.productId) {
+      sections.push(`Filtro Producto ID:,${metadata.filters.productId}`);
+    }
+    sections.push(`Ordenado por:,${metadata.filters.sortBy}`);
+    sections.push('');
+    sections.push('ESTADISTICAS');
+    sections.push(`Total de ordenes:,${metadata.summary.totalOrders}`);
+    sections.push(`Ingresos totales:,$${metadata.summary.totalRevenue.toFixed(2)}`);
+    sections.push(`Cantidad total vendida:,${metadata.summary.totalQuantitySold}`);
+    sections.push(`Valor promedio por orden:,$${metadata.summary.averageOrderValue.toFixed(2)}`);
+    sections.push(`Fecha de generacion:,${new Date().toISOString()}`);
+
+    return sections.join('\n');
   }
 
   /**

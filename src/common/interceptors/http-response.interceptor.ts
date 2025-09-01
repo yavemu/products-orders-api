@@ -20,6 +20,11 @@ export class HttpResponseInterceptor<T> implements NestInterceptor<T, HttpRespon
     return next.handle().pipe(
       map(data => {
         // Handle different response types
+        if (this.isCsvResponse(data)) {
+          // CSV responses should be returned as-is (handled by CsvResponseInterceptor)
+          return data;
+        }
+
         if (this.isAuthResponse(data)) {
           // Auth responses should be returned as-is (login/register)
           const statusCode = this.getSuccessStatusCode(method);
@@ -40,6 +45,17 @@ export class HttpResponseInterceptor<T> implements NestInterceptor<T, HttpRespon
 
   private isServiceResponse(data: any): boolean {
     return data && typeof data === 'object' && 'success' in data;
+  }
+
+  private isCsvResponse(data: any): boolean {
+    return (
+      data &&
+      typeof data === 'object' &&
+      'csvContent' in data &&
+      'headers' in data &&
+      typeof data.csvContent === 'string' &&
+      typeof data.headers === 'object'
+    );
   }
 
   private isAuthResponse(data: any): boolean {

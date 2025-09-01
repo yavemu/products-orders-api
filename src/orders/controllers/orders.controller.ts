@@ -8,10 +8,11 @@ import {
   Delete,
   UseGuards,
   UseInterceptors,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CsvResponseInterceptor } from '../../common/interceptors';
 import { OrdersService } from '../services/orders.service';
 import {
   CreateOrderDto,
@@ -80,11 +81,30 @@ export class OrdersController {
   }
 
   @Post('reports')
-  @UseInterceptors(CsvResponseInterceptor)
   @OrderReportsDecorator()
-  generateReports(
+  async generateReports(
     @Body() reportsDto: OrderReportsDto,
-  ): Promise<OrderReportsResponseDto | { csvContent: string; headers: Record<string, string> }> {
-    return this.ordersService.generateReports(reportsDto);
+    @Res() res: Response,
+  ): Promise<void | OrderReportsResponseDto> {
+    const result = await this.ordersService.generateReports(reportsDto);
+
+    // Si es CSV, configurar la respuesta como archivo de descarga
+    if ('csvContent' in result && 'headers' in result) {
+      // Configurar headers para descarga de archivo
+      Object.entries(result.headers).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+
+      // Enviar el contenido CSV directamente
+      res.send(result.csvContent);
+      return;
+    }
+
+    // Si es JSON, enviar como respuesta HTTP estructurada
+    res.status(200).json({
+      success: true,
+      data: result,
+      statusCode: 200,
+    });
   }
 }
